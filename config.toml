@@ -1,4 +1,8 @@
-publishDir = "P:/R/Github/felixmil.github.io"
+#on maestro computer
+publishDir ="D:/Documents/#02 PROJECTS/MINING/GitHub/felixmil.github.io"
+
+# at work :
+#publishDir = "P:/R/Github/felixmil.github.io"
 
 
 baseURL = "https://felixmil.github.io/"
