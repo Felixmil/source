@@ -1,0 +1,89 @@
+---
+title: How I built this blog using R, Blogdown and Hugo
+author: "Felix"
+date: '2017-12-23'
+categories:
+  - Blogging
+tags:
+  - how to
+  - blog
+  - blogdown
+  - rmarkdown
+  - github
+thumbnailImage: https://talesofr.files.wordpress.com/2017/08/hexbins.png?w=584
+coverimage : https://trello-attachments.s3.amazonaws.com/5a40e1ff1f593f7702819485/5a40e24b6ee6f3ebfdb87d8e/58bf5b2a92a9bfb10826dd6b21f10c5e/blog.jpg
+thumbnailImagePosition : left
+metaAlignment: center
+output: html_document
+---
+
+
+
+<div id="material" class="section level1">
+<h1>Material</h1>
+<p>Used :</p>
+<p>*<a href="https://tclavelle.github.io/blog/blogdown_github/" class="uri">https://tclavelle.github.io/blog/blogdown_github/</a></p>
+<p>*<a href="https://bookdown.org/yihui/blogdown/github-pages.html" class="uri">https://bookdown.org/yihui/blogdown/github-pages.html</a></p>
+<p>*<a href="https://talesofr.wordpress.com/2017/08/18/starting-a-rmarkdown-blog-with-bookdown-hugo-github/" class="uri">https://talesofr.wordpress.com/2017/08/18/starting-a-rmarkdown-blog-with-bookdown-hugo-github/</a></p>
+<p>*<a href="https://yihui.name/en/2017/08/hugo-post-summary/#fnref:I-broke-the-4th" class="uri">https://yihui.name/en/2017/08/hugo-post-summary/#fnref:I-broke-the-4th</a></p>
+</div>
+<div id="how-to" class="section level1">
+<h1>How to</h1>
+<ol style="list-style-type: decimal">
+<li>create 2 repo <em>username/source </em>username/username.github.io</li>
+<li>clone repo on computer and remove readme files</li>
+<li>start new R project</li>
+<li>project option -&gt; website, select source as base directory</li>
+<li>load necessary libraries</li>
+</ol>
+<pre class="r"><code># Load blogdown package and install Hugo
+library(blogdown)
+install_hugo()</code></pre>
+<ol start="6" style="list-style-type: decimal">
+<li>choose a theme</li>
+<li>set “source” as working directory</li>
+<li>create site</li>
+</ol>
+<pre class="r"><code># Create new site in our recently cloned blogdown repository
+new_site(theme = &quot;kakawait/hugo-tranquilpeak-theme&quot;,
+         format = &#39;toml&#39;)</code></pre>
+<ol start="9" style="list-style-type: decimal">
+<li>add folowing lines in config.toml and update the url</li>
+</ol>
+<pre class="r"><code>publishDir = &quot;X:/.../username.github.io&quot;
+themesdir = &quot;X:/.../source/themes&quot;
+baseURL = &quot;https://username.github.io/&quot;</code></pre>
+<ol start="10" style="list-style-type: decimal">
+<li>build the site</li>
+</ol>
+<pre class="r"><code>build_site()</code></pre>
+<ol start="11" style="list-style-type: decimal">
+<li>in Terminal (git code), type</li>
+</ol>
+<pre class="git"><code>cd X:/.../username.github.io
+
+git add *
+
+git commit -m &quot;update ID&quot;
+
+git push origin master</code></pre>
+<ol start="12" style="list-style-type: decimal">
+<li>go to <a href="https://username.github.io/" class="uri">https://username.github.io/</a> in browser</li>
+</ol>
+</div>
+<div id="update" class="section level1">
+<h1>Update</h1>
+<div id="serving-site" class="section level3">
+<h3>Serving site</h3>
+<p>there is a bug when serving site, to solve it, I use the following code</p>
+<pre class="r"><code>install.packages(c(&quot;processx&quot;, &quot;later&quot;))
+options(blogdown.generator.server = TRUE)</code></pre>
+</div>
+<div id="summary-is-way-to-long" class="section level3">
+<h3>Summary is way to long !</h3>
+<p>update layout/Summary.html to optimize Summary readability:</p>
+<p>since <code>&lt;!--more--&gt;</code> does not work with Rmarkdown + Blogdown + Hugo, I modified the theme file. {{.Summary}} became</p>
+<pre class="r"><code>{{ if gt (len .Summary) 200 }}{{slicestr .Summary 0 200}} {{else}} {{.Summary}} {{end}} &lt;a href=&quot;{{ .Permalink }}&quot; class=&quot;postShorten-excerpt_link link&quot;&gt;[...] continue reading &lt;/a&gt;</code></pre>
+<p>source : <a href="https://discourse.gohugo.io/t/limit-the-summary/4103/8" class="uri">https://discourse.gohugo.io/t/limit-the-summary/4103/8</a></p>
+</div>
+</div>

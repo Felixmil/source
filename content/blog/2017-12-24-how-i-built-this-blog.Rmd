@@ -1,0 +1,117 @@
+---
+title: How I built this blog using R, Blogdown and Hugo
+author: "Felix"
+date: '2017-12-23'
+categories:
+  - Blogging
+tags:
+  - how to
+  - blog
+  - blogdown
+  - rmarkdown
+  - github
+thumbnailImage: https://talesofr.files.wordpress.com/2017/08/hexbins.png?w=584
+coverimage : https://trello-attachments.s3.amazonaws.com/5a40e1ff1f593f7702819485/5a40e24b6ee6f3ebfdb87d8e/58bf5b2a92a9bfb10826dd6b21f10c5e/blog.jpg
+thumbnailImagePosition : left
+metaAlignment: center
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval=FALSE)
+```
+
+
+
+
+Material
+=======
+Used :
+
+*https://tclavelle.github.io/blog/blogdown_github/
+
+*https://bookdown.org/yihui/blogdown/github-pages.html
+
+*https://talesofr.wordpress.com/2017/08/18/starting-a-rmarkdown-blog-with-bookdown-hugo-github/
+
+*https://yihui.name/en/2017/08/hugo-post-summary/#fnref:I-broke-the-4th 
+
+
+
+How to
+======
+1. create 2 repo
+  *username/source
+  *username/username.github.io
+2. clone repo on computer and remove readme files
+3. start new R project
+4. project option -> website, select source as base directory
+5. load necessary libraries
+
+```{r librairies, message=F}
+# Load blogdown package and install Hugo
+library(blogdown)
+install_hugo()
+```
+
+6. choose a theme
+7. set "source" as working directory
+8. create site
+```{r}
+# Create new site in our recently cloned blogdown repository
+new_site(theme = "kakawait/hugo-tranquilpeak-theme",
+         format = 'toml')
+```
+
+9. add folowing lines in  config.toml and update the url
+```{r, eval=F}
+publishDir = "X:/.../username.github.io"
+themesdir = "X:/.../source/themes"
+baseURL = "https://username.github.io/"
+
+```
+
+10. build the site
+```{r, eval=F}
+build_site()
+```
+
+
+11. in Terminal (git code), type 
+```{git }
+cd X:/.../username.github.io
+
+git add *
+
+git commit -m "update ID"
+
+git push origin master
+```
+
+12. go to https://username.github.io/ in browser 
+
+
+Update
+=======
+###Serving site
+
+there is a bug when serving site, to solve it, I use the following code
+```{r, eval=F, eval=F}
+install.packages(c("processx", "later"))
+options(blogdown.generator.server = TRUE)
+```
+
+###Summary is way to long !
+
+
+update layout/Summary.html to optimize Summary readability:
+
+since `<!--more-->` does not work with Rmarkdown + Blogdown + Hugo, I modified the theme file. 
+{{.Summary}} became
+```{r, eval=F}
+{{ if gt (len .Summary) 200 }}{{slicestr .Summary 0 200}} {{else}} {{.Summary}} {{end}} <a href="{{ .Permalink }}" class="postShorten-excerpt_link link">[...] continue reading </a>
+
+```
+source : https://discourse.gohugo.io/t/limit-the-summary/4103/8
+        
+

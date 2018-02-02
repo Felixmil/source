@@ -1,0 +1,263 @@
+---
+title: First -real- article and entry for r/dataisbeautiful DataViz Battle
+author: Felix
+date: '2018-01-26'
+categories:
+  - Datavisualisation
+  - Knowledge Discovery
+tags:
+  - R
+  - reddit
+  - Tableau
+slug: first-article-and-entry-for-r-dataisbeautiful-dataviz
+summary: test
+thumbnailImage: https://upload.wikimedia.org/wikipedia/fr/f/fc/Reddit-alien.png
+thumbnailImagePosition: left
+metaAlignment: center
+---
+
+```{r setup, include=F}
+knitr::opts_chunk$set(echo = TRUE, warning=F, fig.align = "center", out.width = "60%", message=F)
+```
+
+
+##About this project
+As first article on this R, datascience and dataviz dedicated blog, I present to you my entry for the [DataViz battle of January 2018](https://www.reddit.com/r/dataisbeautiful/comments/7nm6ed/battle_dataviz_battle_for_the_month_of_january/). The rules can be find in the link.
+
+##Data
+This month, the data source is a [.htm webpage](http://aquatext.com/tables/algaegrwth.htm) containing several algae growthrates for several light and temperature conditions.
+
+
+##How I work on this
+For this project I used :
+
+1. R for
+* Data importation
+* Data wrangling and cleaning
+* Model analysis
+
+2. Tableau
+* Data exploration
+* Generate the data dashboard
+
+So let's start with R !
+
+##Steps
+
+###Load Librairies
+```{r library loading,message=F,warning=F}
+library(devtools)
+library(tidyverse) #essential
+library(stringr) #essential
+library(htmltab) #extract from .htm page
+library(DT) #datatables navigation
+library(patchwork)
+library(ggpubr)
+library(ggsignif)
+library(ggiraph)
+library(viridis)
+library(widgetframe)
+```
+
+###Download database and import into R
+
+```{r connect to data source}
+algae <- htmltab("http://aquatext.com/tables/algaegrwth.htm",2,header = 0)
+
+head(algae,10)
+```
+ 
+wow `htmltab` is very efficient !
+
+### Wrangling with data
+Now we need to wrangle `algae` in order to make it tidy (1 row = 1 observation) so analysis can be performed more easily afterward :
+
+```{r algae wragling }
+algae <- algae[-3,] #remove duplicatedLight row
+
+algae <- t(algae)
+
+colnames(algae) <- algae[1, ] #get column names
+algae <- algae[-1,] #remove first row originally containing column names
+
+algae <- algae %>% as.data.frame() %>% gather(key="specy", value="Growthrate", `Caloneis schroderi`:`Thalassiosira sp.`) 
+#this part was troublesome, I didn't figure that transpose would considerably easy the tidying process here.
+
+colnames(algae) <- c("Temperature","Light","Specy","GrowthRate")
+
+algae$GrowthRate <- as.numeric(algae$GrowthRate)
+
+filter(algae, is.na(GrowthRate))
+```
+
+
+```{r, echo=F}
+htmltools::HTML("{{< alert warning >}}
+Unexpected value for Isochrysis **aff. galbana** at *Temperature 10 and Light 5000* : **0..06**. This value has been put appart for the rest of the analysis and is considered as **NA**.
+{{< /alert >}}")
+```
+
+
+In addition the first word `Specy` is extracted to get the Genus.
+
+```{r checking dataset}
+#lets add a level of detail here
+algae <- algae %>% mutate(Genus=word(algae$Specy,1)) %>% select(Specy,Genus,Temperature,Light,GrowthRate)
+
+head(algae, 10)
+
+d1 <- DT::datatable(iris)
+
+write.table(algae, "D:/Documents/#02 PROJECTS/MINING/Dataviz Battle/algae.csv", sep=";",dec=".", row.names = F)
+
+```
+
+```{r}
+frameWidget(d1, height = 350, width = '95%')
+htmlwidgets::saveWidget(d1, file = "d1.html", selfcontained = TRUE)
+```
+
+<iframe src="figures/d1/index.html></iframe>
+
+This it, data is tidy and ready to be saved and used in tableau !
+
+##Exploratory data analysis (with Tableau Dashboard)
+
+I recommend you open it as full screen.
+
+<iframe src="https://public.tableau.com/profile/mil6217#!/vizhome/AlgaeV1_0/GrowthRateDashboard?publish=yes" align = "center" width="900" height = "700" style="float:middle"/></iframe>
+
+
+this dashboard was designed more for data exploration than knowledge presentation. To me, playing around with data is the best way to grasp it and to make first assumptions, this makes Tableau a powerful and fun tool for my first approach. Through that process, I could generate Hypothesis and even bring some real facts about this dataset.
+
+###Hypothesis
+```{r, echo=F}
+htmltools::HTML("{{< alert info no-icon >}}1. As only 9 algaes can grow at 5C and 15C at 10C on a total of 19 species, temperature seems to be the most important factor for algae growth.
+2. More light is not directly linked to more growth, instead, it looks like a genus or specy preference.{{< /alert >}}")
+```
+
+###Facts
+```{r, echo=F}
+htmltools::HTML("{{< alert success >}}
+Saying that I cannot control Light and Temperature and these variables vary from their minimum and maximum during the year, the best growing algae is **Chlorella ellipsoidea** as its mean growthrate is the highest. 
+{{< /alert >}}")
+```
+
+##Hypothesis testing
+###Visualisation
+Does temperature has a true effect on the algae of this dataset ? is Light really meaningless ? Let's get back in R !
+
+The strategy here is to model Temperature et Light effects over algae growth and perform statistical methods to draw approximate conclusions .
+
+```{r, out.width="70%"}
+#First, we plot the data points
+box1 <- ggplot(algae, aes(fct_inorder(Temperature), GrowthRate))+
+geom_boxplot(aes(group=Temperature), outlier.alpha = 0.4)+labs(x="Temperature (Celsius)")
+
+box2 <- ggplot(algae, aes(Light, GrowthRate))+
+geom_boxplot(aes(group=Light), outlier.alpha = 0.4)+theme(axis.title.y = element_blank())+labs(x="Light (Lux)")
+
+box1 + box2 #I love patchwork
+```
+
+We see a global tendency of Growthrate increasing as Temperature increases. As for Light, nothing clear emerge from this representation.
+
+Those two charts could be replaced by this other interesing visualisation.
+Here, a `geom_signif` was added in order to compare Species through Light conditions as paired samples (linked by gray lines).Temperature effect is clear, higher temperatures generally mean faster growth. For Light, the result of the wilcoxon t.test for paired sample are not significant at any temperature, thus we cannot say that the algae population is different between the two light levels. However, a nice feature of this graph. allows us to see precisely how algae species behave from 2500 to 5000 lux : some grow faster at 2500 and others at 5000. (do these preferences change with temperature ?)
+
+```{r fig.height=5, fig.width=6}
+ggpaired(algae,x="Light", y="GrowthRate",id = "Specy",color = "GrowthRate",line.color = "grey70",point.size = 1.5)+
+  facet_grid(~fct_inorder(Temperature))+
+  geom_signif(comparisons =list(c("2500","5000")),map_signif_level = T,textsize = 3)+
+  scale_color_viridis(begin = 0,end = 0.7, direction=-1)+
+  labs(x="Light", y="Growthrate", title="Growthrates per Temperature and Light", caption="NS is for Not significant. Wilcoxon t test")+
+  theme(legend.position = "top", plot.caption = element_text(hjust=0, face = "italic",size = 9), plot.title = element_text(hjust = 0.5))
+```
+
+###Modelisation
+In order to assess and quantify the effect of Temperature and light on algae growth, we fit an anova model :
+
+```{r,split=F}
+fitanova <- aov(algae$GrowthRate~algae$Temperature*algae$Light+algae$Light*algae$Temperature)
+summary(fitanova) #this is also possible with lm() but doesn't accept factors
+```
+The results of this modelisation tell us that only temperature has significant effet on growth (or that we don't have enough evidence to show Light effects if you prefer).
+
+If we consider Temperature as continuous and fit into a linear model, we can provide a rough quantification of its effect on growth :
+
+```{r,out.width = "70%"}
+
+fitlm <- lm(algae$GrowthRate~algae$Temperature)
+
+ggplot(algae, aes(as.numeric(levels(Temperature)[Temperature]), GrowthRate))+geom_point(aes(color=Genus))+geom_smooth(method="lm")+
+stat_summary(fun.y = mean, geom="line", aes(group=Genus, color=Genus))+labs(title =paste("Growthrate =",signif(fitlm$coef[[2]], 3),"* Temperature +",signif(fitlm$coef[[1]],3 )), subtitle=paste("Adj R2 = ",signif(summary(fitlm)$adj.r.squared, 5), " p-value =",signif(summary(fitlm)$coef[2,4], 5)))+theme(plot.title = element_text(hjust=0.5), plot.subtitle = element_text(hjust=0.5))+labs(x="Temperature (Celsius)")
+```
+
+```{r, echo=F}
+htmltools::HTML("{{< alert warning >}}
+I am not rigorously sure about this assumption of effect quantification, so if i'm wrong please, contact me on twitter
+{{< /alert >}}
+")
+```
+
+
+```{r, echo=F}
+htmltools::HTML("{{< alert success >}}
+
+So what doest Algae data set teach us ?
+If you want to grow algae at industrial scale, you need to control water temperature and keep it at high level (at least around 30Celsius) while lack of sun is not a big problem.
+So ... that explains why the most part of algae industry in France was able to set up in Bretagne !
+
+Thank you for reading and come back next month for the next dataviz battle !
+{{< /alert >}}
+")
+```
+
+**************
+##Bonus 
+
+At the begining of this project, I tried to use only R to build the DataViz I wanted to make, but this quickly turned in a very complicated task...
+
+```{r fig.asp=0.68, tidy=T}
+algae_means <- algae %>% group_by(Specy,Light) %>% mutate(growth_minus_Temp =mean(GrowthRate, na.rm=T)) %>% ungroup() %>%  group_by(Specy,Temperature) %>% mutate(growth_minus_Light =mean(GrowthRate, na.rm=T)) %>% ungroup() %>% group_by(Specy) %>% mutate(total_mean=mean(GrowthRate, na.rm=T))
+
+library("packcircles")
+library("viridis")
+library("ggiraph")
+pack <- circleProgressiveLayout(unique(algae_means$total_mean),sizetype = "area")
+pack <- pack[complete.cases(pack),]
+
+data <-  bind_cols(algae_means %>% select(Specy, Genus, total_mean) %>% filter(total_mean>=0)%>% unique(), pack)
+
+pack <- cbind(Specy=data$Specy, pack)
+pack <- pack %>% select(x,y,radius,Specy)
+pack$radius <-  rnorm(2,mean = 0.95,sd = 0.05)*pack$radius
+
+data$text <- paste("Genus : ", data$Genus,"\n","Specy: ",data$Specy, "\n", "Mean Growthrate : ",data$total_mean)
+
+dat.gg <- circleLayoutVertices(pack,npoints=60,idcol = "Specy")
+dat.gg <- dat.gg %>% mutate(Genus=word(dat.gg$id,1))
+
+p <- ggplot() + 
+  geom_polygon_interactive(data = dat.gg, aes(x, y, group=id, fill=id, data_id=id, tooltip=data$text[id]), colour = "black", alpha = 0.75) +
+  scale_fill_brewer(type="qual", palette=3) +
+  geom_text(data = data, aes(x, y, label =Specy, size=(2*radius)), color="black") +
+  theme_void() + 
+  theme(legend.position="none", plot.margin=unit(c(0,0,0,0),"cm") ) + 
+  coord_equal()+
+  labs(title = "Mean Growth Rate of algae by species", caption="Colored by Genus. Mean Growth is idependant of : \n   - Light (between 2,5-5K Lux) \n  - Temperature (between 5-25 Celsius)")+
+  theme(plot.title = element_text(size=24, hjust=0.5,face = "bold"), plot.caption = element_text(size=14, hjust=0,face = "italic"))
+ 
+i_plot <- ggiraph(ggobj = p, width_svg = 7, height_svg = 9)
+
+widgetframe::frameWidget(i_plot)
+```
+
+
+
+
+Although this chart is OK, it is far from finished, and I still spent about 2 hours to get it ! This is why I think combining R and Tableau is good for knowledge discovery process for a R padawan like me.
+
+
+
+<iframe>

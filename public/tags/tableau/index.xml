@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tableau on Universal</title>
+    <link>/tags/tableau/</link>
+    <description>Recent content in Tableau on Universal</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>Copyright (c) 2015 - 2016, YourCompany; all rights reserved.</copyright>
+    <lastBuildDate>Fri, 26 Jan 2018 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="/tags/tableau/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>First -real- article and entry for r/dataisbeautiful DataViz Battle</title>
+      <link>/blog/2018/01/26/2018-01-20-first-article-and-entry-for-r-dataisbeautiful-dataviz/</link>
+      <pubDate>Fri, 26 Jan 2018 00:00:00 +0000</pubDate>
+      
+      <guid>/blog/2018/01/26/2018-01-20-first-article-and-entry-for-r-dataisbeautiful-dataviz/</guid>
+      <description>About this projectAs first article on this R, datascience and dataviz dedicated blog, I present to you my entry for the DataViz battle of January 2018. The rules can be find in the link.
+DataThis month, the data source is a .htm webpage containing several algae growthrates for several light and temperature conditions.
+How I work on thisFor this project I used :</description>
+    </item>
+    
+  </channel>
+</rss>

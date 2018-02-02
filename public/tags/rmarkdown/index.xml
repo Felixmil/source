@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Rmarkdown on Universal</title>
+    <link>/tags/rmarkdown/</link>
+    <description>Recent content in Rmarkdown on Universal</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>Copyright (c) 2015 - 2016, YourCompany; all rights reserved.</copyright>
+    <lastBuildDate>Sat, 23 Dec 2017 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="/tags/rmarkdown/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>How I built this blog</title>
+      <link>/blog/2017/12/23/2017-12-24-how-i-built-this-blog/</link>
+      <pubDate>Sat, 23 Dec 2017 00:00:00 +0000</pubDate>
+      
+      <guid>/blog/2017/12/23/2017-12-24-how-i-built-this-blog/</guid>
+      <description>MaterialUsed :
+*https://tclavelle.github.io/blog/blogdown_github/
+*https://bookdown.org/yihui/blogdown/github-pages.html
+*https://talesofr.wordpress.com/2017/08/18/starting-a-rmarkdown-blog-with-bookdown-hugo-github/
+*https://yihui.name/en/2017/08/hugo-post-summary/#fnref:I-broke-the-4th
+How tocreate 2 repo username/source username/username.github.ioclone repo on computer and remove readme filesstart new R projectproject option -&amp;gt; website, select source as base directoryload necessary libraries# Load blogdown package and install Hugolibrary(blogdown)install_hugo()choose a themeset “source” as working directorycreate site# Create new site in our recently cloned blogdown repositorynew_site(theme = &amp;quot;kakawait/hugo-tranquilpeak-theme&amp;quot;,format = &amp;#39;toml&amp;#39;)add folowing lines in config.</description>
+    </item>
+    
+  </channel>
+</rss>

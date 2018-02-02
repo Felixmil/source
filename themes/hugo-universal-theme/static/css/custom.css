@@ -1,0 +1,33 @@
+/* your styles go here */
+
+.box-image-text .image {
+  min-height: 200px;
+  max-height: 200px;
+}
+
+.box-simple {
+  min-height: 230px;
+}
+
+p.lead {
+    margin-bottom: 40px;
+    text-align: center;
+}
+
+.bar.background-image-fixed-2 {
+  background: url('../img/blog.jpg') center top no-repeat;
+  background-attachment: fixed;
+  background-size: cover;
+}
+
+#heading-breadcrumbs {
+    margin-bottom: 40px;
+    background: url(../img/texture-turquoise.png) center center repeat;
+    padding: 20px 0px;
+}
+
+@media (min-width: 992px)
+bootstrap.css:1940
+.col-md-9 {
+    width: 92%;
+}
