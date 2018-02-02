@@ -38,3 +38,31 @@ body {
     line-height: 1.42857143;
     color: #555555;
 }
+
+#top p {
+    display: none;
+}
+
+.col-md-3 .col-sm-6 {
+  font-size:14px;
+}
+
+#blog-listing-medium .post .intro {
+    text-align: right;
+    font-style: italic;
+}
+
+.box-image-text.blog .intro {
+    text-align: -webkit-left;
+    margin-bottom: 15px;
+    font-size: 15px;
+    font-style: italic;
+}
+
+.box-image-text .image {
+    min-height: 150px;
+    max-height: 150px;
+    max-width: 250px;
+    margin-left: auto;
+    margin-right: auto;
+}
