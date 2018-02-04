@@ -15,6 +15,7 @@ coverimage : https://trello-attachments.s3.amazonaws.com/5a40e1ff1f593f770281948
 thumbnailImagePosition : left
 metaAlignment: center
 output: html_document
+banner: "img/Articles/blog.jpg"
 ---
 
 ```{r setup, include=FALSE}
