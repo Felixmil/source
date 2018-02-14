@@ -1,0 +1,158 @@
+---
+title: Opitimizing Mario Kart 8 Deluxe Gameplay
+author: Félix
+date: '2018-02-14'
+categories:
+  - Knowledge Discovery
+slug: opitimizing-mario-kart-8-deluxe-gameplay
+---
+
+
+#Import data
+```{r message=FALSE, warning=FALSE}
+library(readxl)
+Char<- read_xlsx("Mario Kart 8 Deluxe Stat.xlsx",sheet = "Char",col_names = T, col_types = c("text",rep("numeric", 12)))
+
+Kart <- read_xlsx("Mario Kart 8 Deluxe Stat.xlsx",sheet = "Kart",col_names = T, col_types = c("text",rep("numeric", 12)))
+
+Tire <- read_xlsx("Mario Kart 8 Deluxe Stat.xlsx",sheet = "Tire",col_names = T, col_types = c("text",rep("numeric", 12)))
+
+Glide <- read_xlsx("Mario Kart 8 Deluxe Stat.xlsx",sheet = "Glide",col_names = T, col_types = c("text",rep("numeric", 12)))
+
+
+library(tidyverse)
+Char<-Char %>% add_column(Type="Char", .after='ID')
+Kart <- Kart %>% add_column(Type="Kart", .after='ID')
+Tire <- Tire %>% add_column(Type="Tire", .after='ID')
+Glide <- Glide %>% add_column(Type="Glide", .after='ID')
+
+data <-  full_join(Char, Kart) %>% full_join(Glide) %>% full_join(Tire)
+```
+
+
+#compute mean speed and handling
+```{r}
+data <- data %>%mutate(Speed_mean=rowMeans(data[grepl("Speed", names(data))])) %>% mutate(Handling_mean=rowMeans(data[grepl("Handling", names(data))]))
+```
+
+```{r}
+library(qtlcharts)
+iplotCorr(data %>% filter(Type=="Char") %>% select(-ID, -Type, -Speed_Land:-Speed_Gliding,-Handling_Land:-Handling_Gliding))
+
+```
+
+#How characters are distributed between Acceleration and Speed
+```{r}
+ggplot(data %>% filter(Type=="Char"), aes(x=Speed_mean,y=Accel))+geom_point(aes(size=Weight, fill=`M-turbo`), pch=21)+ggrepel::geom_text_repel(aes(label=ID), min.segment.length = 0.1,point.padding = unit(1.2, 'lines'),box.padding = unit(0.6, 'lines'), force=2)+viridis::scale_fill_viridis()
+```
+Fastest characters are also the heaviest and the ones with lowest acceleration, handling and Mini-turbo
+
+
+#Wich Kart provide the best bonus Speed/Accelaration ?
+```{r}
+ggplot(data %>% filter(Type=="Kart"), aes(x=Speed_mean,y=Accel))+geom_point(aes(size=Weight, fill=`M-turbo`), pch=21)+ggrepel::geom_text_repel(aes(label=ID), min.segment.length = 0.1,point.padding = unit(1.2, 'lines'),box.padding = unit(0.6, 'lines'), force=2)+viridis::scale_fill_viridis()+geom_rect(aes(ymin=-Inf, ymax=0, xmin=-Inf, xmax=0), alpha=0.01, fill="red")+geom_rect(aes(ymin=0, ymax=Inf, xmin=0, xmax=Inf), alpha=0.01, fill="green")
+```
+
+
+**A Speed/acceleration Bonus Ratio would be good to condensate information**
+
+
+```{r}
+data <- data %>% mutate("Bonus_Rate"=ifelse(Speed_mean > Accel, abs(Speed_mean/Accel),abs(Accel/Speed_mean)))
+
+ggplot(data %>% filter(Type=="Kart"), aes(Bonus_Rate, ID))+geom_point()+ggrepel::geom_text_repel(aes(label=paste(Speed_mean,"/",Accel)), min.segment.length = 0.1,point.padding = unit(1.2, 'lines'),box.padding = unit(0.6, 'lines'), force=2)
+
+```
+W 25 Silver Arrow and Cat Cruiser provides the most bonus regarding to malus (4 times more bonus than malus)
+
+```{r}
+data$total <- rowSums(data[,c(7,8,13:17)], na.rm = T)
+
+data %>%group_by(Type) %>%filter(total==max(total, na.rm=T))
+
+```
+
+#+generate all combinations
+```{r}
+#method1
+library(gtools)
+
+comb <- as_data_frame(permutations(n=length(data$ID),r=4,v=data$ID, repeats.allowed = F)) %>% filter(V1 %in% Char$ID & V2 %in% Kart$ID & V3 %in% Tire$ID & V4 %in% Glide$ID)
+
+names(comb)[1] <- "ID"
+comb1 <- inner_join(comb, data, by="ID")
+
+names(comb)[1] <- "V1"
+names(comb)[2] <- "ID"
+comb2 <- inner_join(comb, data, by="ID")
+
+names(comb)[2] <- "V2"
+names(comb)[3] <- "ID"
+comb3 <- inner_join(comb, data, by="ID")
+
+names(comb)[3] <- "V3"
+names(comb)[4] <- "ID"
+comb4 <- inner_join(comb, data, by="ID")
+
+data_combo <- comb1[,6:21]+comb2[,6:21]+comb3[,6:21]+comb4[,6:21]
+
+data_combo <- cbind(comb[,1:4], data_combo)
+
+# Rename a column in R
+names(data_combo)[1]<-"Char"
+names(data_combo)[2]<-"Kart"
+names(data_combo)[3]<-"Tire"
+names(data_combo)[4]<-"Glidder"
+```
+
+```{r eval=FALSE}
+#method 2 (not working)
+data_combo <- as.data.frame((data %>% group_by(Type) %>% sample_n(1) %>% ungroup() %>% mutate_if(is.numeric,sum) %>% ungroup() %>% mutate(ID=paste(ID, collapse=" + ")) %>% select(-Type)%>%unique()))
+
+test <- replicate(5, { rbind(data_combo, (data %>% group_by(Type) %>% sample_n(1) %>% ungroup() %>% mutate_if(is.numeric,sum) %>% ungroup() %>% mutate(ID=paste(ID, collapse=" + ")) %>% select(-Type)%>%unique()))} )
+```
+
+
+```{r}
+
+data_combo <- data_combo %>% mutate(Speed_Land2=2*Speed_Land)
+
+data_combo <- data_combo %>% mutate(Handling_Land2=2*Handling_Land)
+
+
+data_combo  <- data_combo  %>%mutate(Speed_mean=rowMeans(data_combo[,c(6:8,21)])) %>% mutate(Handling_mean=rowMeans(data_combo[,c(12:14,22)]))
+
+
+data_combo$total <- rowSums(data_combo[,c(9,15:18)], na.rm = T)
+
+data_combo$total_A_S <- rowSums(data_combo[,c(9,17)])
+
+data_combo <- data_combo %>% mutate(W_category = cut(Weight,breaks = c(0,2,3,4,5,6),labels = c("Super Light","Light","Medium","Heavy", "Super Heavy")))
+
+
+
+```
+
+
+```{r}
+library(skimr)
+library(ggridges)
+skim(data_combo)
+
+ggplot(data_combo, aes(total, W_category))+geom_density_ridges(aes(fill=W_category),panel_scaling = F, alpha=0.8,rel_min_height = 0.000001)+scale_fill_brewer()
+```
+Lighest classes have higher totals once weight is put out of the balance
+
+```{r}
+data_combo %>% group_by(W_category)%>% summarise_if(is.numeric,mean) %>% select(W_category,Weight, Accel, Speed_mean, Handling_mean, `M-turbo`,Traction)
+
+summary <- data_combo %>% group_by(W_category) %>% select(-Char,-Glidder, -Kart, -Tire) %>% select(Accel, Speed_mean, Handling_mean, `M-turbo`,Traction)%>% skim_to_wide() %>% arrange(variable)
+
+ggplot(summary, aes(W_category, median))+geom_point()+facet_grid(variable~., scales = "free")
+```
+
+
+```{r}
+data_combo %>% filter(Speed_mean > 3 & Accel > 3 & Handling_mean > 3 & Speed_Land > 3 & W_category=="Medium") %>% top_n(10,total) %>% arrange(desc(total))
+```
+
