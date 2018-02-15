@@ -151,8 +151,8 @@ summary <- data_combo %>% group_by(W_category) %>% select(-Char,-Glidder, -Kart,
 ggplot(summary, aes(W_category, median))+geom_point()+facet_grid(variable~., scales = "free")
 ```
 
+#Best Medium Weight combination ?
 
 ```{r}
 data_combo %>% filter(Speed_mean > 3 & Accel > 3 & Handling_mean > 3 & Speed_Land > 3 & W_category=="Medium") %>% top_n(10,total) %>% arrange(desc(total))
 ```
-
