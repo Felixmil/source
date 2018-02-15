@@ -48,15 +48,20 @@ ggplot(data %>% filter(Type=="Char"), aes(x=Speed_mean,y=Accel))+geom_point(aes(
 Fastest characters are also the heaviest and the ones with lowest acceleration, handling and Mini-turbo
 
 
-#Wich Kart provide the best bonus Speed/Accelaration ?
+#Wich Kart/ provide the best bonus  ?
 ```{r}
 ggplot(data %>% filter(Type=="Kart"), aes(x=Speed_mean,y=Accel))+geom_point(aes(size=Weight, fill=`M-turbo`), pch=21)+ggrepel::geom_text_repel(aes(label=ID), min.segment.length = 0.1,point.padding = unit(1.2, 'lines'),box.padding = unit(0.6, 'lines'), force=2)+viridis::scale_fill_viridis()+geom_rect(aes(ymin=-Inf, ymax=0, xmin=-Inf, xmax=0), alpha=0.01, fill="red")+geom_rect(aes(ymin=0, ymax=Inf, xmin=0, xmax=Inf), alpha=0.01, fill="green")
 ```
+```{r}
+ggplot(data %>% filter(Type=="Tire"), aes(x=Speed_mean,y=Accel))+geom_point(aes(size=Weight, fill=`M-turbo`), pch=21)+ggrepel::geom_text_repel(aes(label=ID), min.segment.length = 0.1,point.padding = unit(1.2, 'lines'),box.padding = unit(0.6, 'lines'), force=2)+viridis::scale_fill_viridis()+geom_rect(aes(ymin=-Inf, ymax=0, xmin=-Inf, xmax=0), alpha=0.01, fill="red")+geom_rect(aes(ymin=0, ymax=Inf, xmin=0, xmax=Inf), alpha=0.01, fill="green")
+```
+
+```{r}
+ggplot(data %>% filter(Type=="Glide"), aes(x=Speed_mean,y=Accel))+geom_point(aes(size=Weight, fill=`M-turbo`), pch=21)+ggrepel::geom_text_repel(aes(label=ID), min.segment.length = 0.1,point.padding = unit(1.2, 'lines'),box.padding = unit(0.6, 'lines'), force=2)+viridis::scale_fill_viridis()+geom_rect(aes(ymin=-Inf, ymax=0, xmin=-Inf, xmax=0), alpha=0.01, fill="red")+geom_rect(aes(ymin=0, ymax=Inf, xmin=0, xmax=Inf), alpha=0.01, fill="green")
+```
 
 
-**A Speed/acceleration Bonus Ratio would be good to condensate information**
-
-
+#Which Item adds more Bonus than Malus ?
 ```{r}
 data <- data %>% mutate("Bonus_Rate"=ifelse(Speed_mean > Accel, abs(Speed_mean/Accel),abs(Accel/Speed_mean)))
 
@@ -65,14 +70,24 @@ ggplot(data %>% filter(Type=="Kart"), aes(Bonus_Rate, ID))+geom_point()+ggrepel:
 ```
 W 25 Silver Arrow and Cat Cruiser provides the most bonus regarding to malus (4 times more bonus than malus)
 
-```{r}
-data$total <- rowSums(data[,c(7,8,13:17)], na.rm = T)
 
-data %>%group_by(Type) %>%filter(total==max(total, na.rm=T))
 
-```
+#Which Char-Kart-Tire-Glide is the best combination to maximize performance ?
+The parameters that need to be optimized are :
 
-#+generate all combinations
+-Speed
+-Acceleration
+-Handling
+-Turbo
+
+Weight is mostly players preference depending on the kind of gameplay, as seen before :
+-High wheight have best speed. Fits players that can dodge most enemy items, don't want to be pushed and are sure to stay on the tracks.
+-Low Wheight have best acceleration. Fits players that want return to max speed faster after getting ruined by a blue shell and are able to dodge the big ones.
+
+Note that lighter characters have Higher Handling (better turns) and better Turbo (takes less time to trigger and last longer). This is why I prefer Medium-Light characters: even if Turbo are not super-fast, I can trigger turbo more often and commit few errors (*who doesn't ?*) without being severly punished.
+
+
+## Generation of all combinations
 ```{r}
 #method1
 library(gtools)
@@ -94,11 +109,10 @@ names(comb)[3] <- "V3"
 names(comb)[4] <- "ID"
 comb4 <- inner_join(comb, data, by="ID")
 
-data_combo <- comb1[,6:21]+comb2[,6:21]+comb3[,6:21]+comb4[,6:21]
+data_combo <- comb1[,6:20]+comb2[,6:20]+comb3[,6:20]+comb4[,6:20]
 
 data_combo <- cbind(comb[,1:4], data_combo)
 
-# Rename a column in R
 names(data_combo)[1]<-"Char"
 names(data_combo)[2]<-"Kart"
 names(data_combo)[3]<-"Tire"
@@ -112,47 +126,76 @@ data_combo <- as.data.frame((data %>% group_by(Type) %>% sample_n(1) %>% ungroup
 test <- replicate(5, { rbind(data_combo, (data %>% group_by(Type) %>% sample_n(1) %>% ungroup() %>% mutate_if(is.numeric,sum) %>% ungroup() %>% mutate(ID=paste(ID, collapse=" + ")) %>% select(-Type)%>%unique()))} )
 ```
 
-
+##Compute stats for each combination
 ```{r}
-
+#Land Speed and Handling are weighted (twice more important) for mean calculation since most part of the races happens on regular soil.
 data_combo <- data_combo %>% mutate(Speed_Land2=2*Speed_Land)
-
 data_combo <- data_combo %>% mutate(Handling_Land2=2*Handling_Land)
 
 
-data_combo  <- data_combo  %>%mutate(Speed_mean=rowMeans(data_combo[,c(6:8,21)])) %>% mutate(Handling_mean=rowMeans(data_combo[,c(12:14,22)]))
+data_combo  <- data_combo  %>%mutate(Speed_mean=rowMeans(data_combo[,c(6:8,20)])) %>% mutate(Handling_mean=rowMeans(data_combo[,c(12:14,21)]))
 
 
-data_combo$total <- rowSums(data_combo[,c(9,15:18)], na.rm = T)
-
-data_combo$total_A_S <- rowSums(data_combo[,c(9,17)])
-
-data_combo <- data_combo %>% mutate(W_category = cut(Weight,breaks = c(0,2,3,4,5,6),labels = c("Super Light","Light","Medium","Heavy", "Super Heavy")))
-
-
-
+data_combo$total <- rowSums(data_combo[,c(9,15:18)], na.rm = T) #Weigh and handling are not included in the total stat calculation
 ```
 
+##Create Weigh categories
+```{r}
+data_combo <- data_combo %>% mutate(w_cat = cut(Weight,breaks = c(0,2,3,4,5,6),labels = c("Super Light","Light","Medium","Heavy", "Super Heavy")))
+```
 
+##Summary of data
 ```{r}
 library(skimr)
 library(ggridges)
 skim(data_combo)
 
-ggplot(data_combo, aes(total, W_category))+geom_density_ridges(aes(fill=W_category),panel_scaling = F, alpha=0.8,rel_min_height = 0.000001)+scale_fill_brewer()
+ggplot(data_combo, aes(total, w_cat))+geom_density_ridges(aes(fill=W_cat),panel_scaling = F, alpha=0.8,rel_min_height = 0.000001)+scale_fill_brewer()
+
+ggplot(data_combo %>% gather(key=stat, value=stat_v, c(Accel, Speed_mean, `M-turbo`,Traction, Handling_mean))) + geom_density_ridges2(aes(stat_v, w_cat, fill=w_cat), alpha=0.85)+facet_grid(stat~., switch = "y")+scale_fill_brewer()+theme(axis.ticks.y = element_blank(), axis.text.y = element_blank())
+
+data_combo %>% group_by(W_cat) %>% select(-Char,-Glidder, -Kart, -Tire) %>% select(Accel, Speed_mean, Handling_mean, `M-turbo`,Traction)%>% skim_to_wide() %>% arrange(variable)
 ```
-Lighest classes have higher totals once weight is put out of the balance
+Lighest combo have higher totals once weight is put out of the balance. 
+
+
+#Wich is the Most balanced Combo ?
+
+Is there any combination that results with all stats being above or equal to 3.5 ?
+```{r}
+data_combo %>%filter(Speed_Land>=3.5 & Accel >= 3.5 & Handling_Land >=3.5 & `M-turbo` >=3.5 & Traction >=3.5) %>% select(Char, Kart, Tire, Glidder,total,Weight, Accel, Speed_mean,Speed_Land, Handling_mean, `M-turbo`,Traction, Handling_Land) %>% arrange(desc(total)) 
+```
+
+I want a Weight less than 3.5 and the best Accel I can get in this list.
 
 ```{r}
-data_combo %>% group_by(W_category)%>% summarise_if(is.numeric,mean) %>% select(W_category,Weight, Accel, Speed_mean, Handling_mean, `M-turbo`,Traction)
-
-summary <- data_combo %>% group_by(W_category) %>% select(-Char,-Glidder, -Kart, -Tire) %>% select(Accel, Speed_mean, Handling_mean, `M-turbo`,Traction)%>% skim_to_wide() %>% arrange(variable)
-
-ggplot(summary, aes(W_category, median))+geom_point()+facet_grid(variable~., scales = "free")
+data_combo %>%filter(Speed_Land>=3.5 & Accel >= 3.5 & Handling_Land >=3.5 & `M-turbo` >=3.5 & Traction >=3.5 & Weight <3.5) %>% select(Char, Kart, Tire, Glidder,total,Weight, Accel, Speed_mean,Speed_Land, Handling_mean, `M-turbo`,Traction, Handling_Land) %>% arrange(desc(total)) %>% top_n(10, wt=Accel)
 ```
 
-#Best Medium Weight combination ?
 
+#Best combinations for Yoshi
 ```{r}
-data_combo %>% filter(Speed_mean > 3 & Accel > 3 & Handling_mean > 3 & Speed_Land > 3 & W_category=="Medium") %>% top_n(10,total) %>% arrange(desc(total))
+data_combo %>%filter(Char=="Peach", Speed_Land >3) %>% select(Char, Kart, Tire, Glidder,total,Weight, Accel, Speed_mean,Speed_Land, Handling_mean, `M-turbo`,Traction, Handling_Land) %>% arrange(desc(total)) %>% top_n(10, Accel)
+
+ggplot(data_combo %>%filter(Char=="Peach") %>% mutate(total_perf=Accel+Speed_Land+Handling_Land+`M-turbo`+Traction), aes(Speed_mean, Accel))+
+  geom_point(pch=21, alpha=0.85, aes(fill=`M-turbo`, size=Handling_mean))+
+  ggrepel::geom_label_repel(data=(data_combo %>%filter(Char=="Peach", Speed_mean > 4 & Accel > 4) %>% mutate(total_perf=Accel+Speed_mean+Handling_mean+Traction+`M-turbo`+Handling_Land+Speed_Land) %>% top_n(3, total_perf)), aes(x=Speed_mean, y=Accel,label=paste(total_perf,"\n",Kart,"+", Tire,"+", Glidder,"\n", w_cat)), size=2.6, segment.colour = "black",force=3,point.padding = unit(0.5, "lines"), box.padding = 1.5, color="black", fill="white", alpha=0.87)+
+  scale_fill_distiller(direction=1, palette="Greens")
 ```
+
+##Best overall combination
+```{r}
+data_combo %>%filter(Char=="Peach", Speed_Land >3) %>% select(Char, Kart, Tire, Glidder,total,Weight, Accel, Speed_mean,Speed_Land, Handling_mean, `M-turbo`,Traction, Handling_Land) %>% arrange(desc(total)) %>% top_n(10, Accel)
+
+ggplot(data_combo, aes(Speed_mean, Accel))+
+  geom_point(pch=21, alpha=0.95, aes(fill=`M-turbo`, size=Handling_mean))+
+  ggrepel::geom_label_repel(data=(data_combo %>%filter(Speed_mean > 3.5 & Accel > 3.5) %>% mutate(total_perf=Accel+Speed_mean+Handling_mean+Traction+`M-turbo`+Handling_Land+Speed_Land) %>% top_n(3, total_perf)), aes(x=Speed_mean, y=Accel,label=paste(total_perf,"\n",Char,"+",Kart,"+", Tire,"+", Glidder)), size=2.6, segment.colour = "black",force=3,point.padding = unit(0.5, "lines"), box.padding = 0, color="black", fill="white", alpha=0.85,direction = "y", segment.size = 1)+viridis::scale_fill_viridis(direction=1)
+```
+
+
+
+#Graphical representation for combo selection
+```{r}
+ggplot(data_combo %>%filter(Speed_mean>=3.5 & Accel >= 3.5 & Handling_mean >=3.5 & `M-turbo` >=3.5 & Traction >=3.5 & Speed_Land >= 3.5 & Handling_Land >= 3.5) %>% top_n(10, total), aes(Accel, Speed_mean))+geom_point(aes(size=Handling_mean))+ggrepel::geom_label_repel(aes(label=paste(Char,"\n", Kart,"+", Tire,"+", Glidder)),min.segment.length = 0.001, size=2.5, force=2, box.padding = 1.5, direction = "x")
+```
+
