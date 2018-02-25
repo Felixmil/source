@@ -1,6 +1,6 @@
 ---
-title: Submission for r/dataisbeautiful dataviz battle of February
-author: Félix MIL
+title: Submission for r/dataisbeautiful Dataviz Battle of February
+author: "Felix"
 date: '2018-02-25'
 slug: submission-for-r-dataisbeautiful-dataviz-battle-of-february
 categories:
@@ -8,10 +8,25 @@ categories:
 tags:
   - reddit
   - dataviz
+banner: "img/Articles/datart februrary.png"
+output: html_document
+metaAlignment: center
 ---
 
-#Import Data (from github)
-Found how to do it here : Github/Opetchey[https://github.com/opetchey/RREEBES/wiki/Reading-data-and-code-from-an-online-github-repository]
+```{r setup, include=F}
+knitr::opts_chunk$set(echo = TRUE, warning=F, fig.align = "center", out.width = "90%", message=F)
+```
+
+This post reports the development process I carried for the [DataViz battle of February 2018](https://www.reddit.com/r/dataisbeautiful/comments/7vegvf/battle_dataviz_battle_for_the_month_of_february/?ref=share&ref_source=link). The rules can be found in the link.
+
+## Raw Data
+
+
+This month, the data source is a on a [github repo]("https://raw.githubusercontent.com/zonination/samesmarriage/master/ssm.csv"). It contains all same-sex marriage legal status for each states of the USA from 1995 to 2015.
+
+## Import Data (from github)
+
+Found how to do it at [Github/Opetchey](https://github.com/opetchey/RREEBES/wiki/Reading-data-and-code-from-an-online-github-repository)
 
 ```{r}
 library(RCurl)
@@ -22,56 +37,75 @@ str(raw_data)
 ```
 Looks righ but years column contains "X" at the begining, weird... let's fix that !
 
-#Tidy data
+## Tidy data
 ```{r}
+library(devtools)
 library(stringr)
 library(tidyverse)
+library(widgetframe)
+library(DT)
+library(htmlwidgets)
+
 data_colnames <- colnames(raw_data)
 
 data_colnames <- ifelse(str_detect(data_colnames,'[:digit:]+'), str_extract(data_colnames,"[:digit:]+"), data_colnames)
 
 colnames(raw_data) <- data_colnames
-
 str(raw_data)
 ```
 Perfect !
 
-Now let's turn year variables as one 
 
+Now, let's turn year variables as one with gather to anticipate plotting needs
 ```{r}
 data <- raw_data %>% gather (key=year, value=`legal status`, c("1995":"2015"))
-
 data$year <-  as.numeric(data$year)
+str(data)
+
+widgetframe::frameWidget(datatable(data))
+
 ```
 
-#Summarise Data
+
+## How data looks like : First Data Viz's
+### Count by legal status over the years
+
 ```{r}
-library(skimr)
-skim(data)
+ggplot(data, aes(x=year)) + 
+  geom_bar(aes(fill=fct_relevel(`legal status`,"Constitutional Ban","Statutory Ban","No Law", "Legal")))+
+  scale_fill_brewer(type="div", palette="PuOr")+
+  theme(legend.position = "bottom")+
+  labs(fill="Legal Status")
 ```
 
-#How data looks like : First Data Viz's
-##Count by legal status over the years
-```{r}
-ggplot(data, aes(x=year)) + geom_bar(aes(fill=fct_relevel(`legal status`,"Constitutional Ban","Statutory Ban","No Law", "Legal")))+scale_fill_brewer(type="div", palette="PuOr")+theme(legend.position = "bottom")+labs(fill="Legal Status")
-```
+### Proportionnal legal status over the years
 
-##Proportionnal legal status over the years
 ```{r}
 
-ggplot(data, aes(x=year, y=State, group=`legal status`)) + geom_area(aes(fill=`legal status`), size=1)+scale_fill_brewer(type="div", palette="PuOr")
-#that's an odd chart !!
+ggplot(data, aes(x=year, y=State, group=`legal status`)) + 
+  geom_area(aes(fill=`legal status`), size=1)+
+  scale_fill_brewer(type="div", palette="PuOr")
 
-ggplot(data, aes(x=year, group=fct_infreq(`legal status`),fill=fct_relevel(`legal status`,"Constitutional Ban","Statutory Ban","No Law", "Legal"))) + geom_area(stat="count", position="fill")+scale_fill_brewer(type="div", palette="PuOr")+theme(legend.position = "bottom")+labs(fill="Legal Status")
+
 ```
-The two previous plot are good to see global legal status evolution in the USA but it lacks details regarding states history. As States history can be assessable from data's level of details, it would be a shame not using it.
+That's an odd interesting chart !!
 
-#States background, year by year
+Let's try again
+```{r}
+ggplot(data, aes(x=year, group=fct_infreq(`legal status`),fill=fct_relevel(`legal status`,"Constitutional Ban","Statutory Ban","No Law", "Legal"))) + 
+  geom_area(stat="count", position="fill")+
+  scale_fill_brewer(type="div", palette="PuOr")+theme(legend.position = "bottom")+
+  labs(fill="Legal Status")
+```
 
-A tile graph is an appropriate template to build this visualisation : squares delimits states and year as discrete scale.
-```{r fig.width=12}
+The two previous plot are good to see global legal status evolution in the USA but it lacks details regarding state by state history. Data's level of detail make States history assessable, it would be a shame not using it.
+
+## States background, year by year
+
+A tile graph is an appropriate template to build this visualisation : squares delimits states and year as discrete scales. Indeed, data doesn't contain the precise date when legal status change, thus years can be considered on discrete scale.
+```{r, fig.height=7}
 ggplot(data) + 
-  geom_tile(aes(fill=fct_relevel(`legal status`,"Constitutional Ban","Statutory Ban","No Law", "Legal"),x=year, y=State),color="white", size=1.25)+
+  geom_tile(aes(fill=fct_relevel(`legal status`,"Constitutional Ban","Statutory Ban","No Law", "Legal"),x=year, y=State),color="white", size=0.8)+
   scale_fill_manual(values = c("#e66101","#fdb863","grey","#5e3c99"))+
   coord_equal()+
   labs(fill="Legal Status :", title="Same Sex Marriage Legal Status Evolution in USA since 1995")+
@@ -79,18 +113,39 @@ ggplot(data) +
 ```
 Alphabetical order is practical to find a State one's want more details on, but it is also more difficult to contextualize the information as global trends tends to fade into categorical complexity (here, the 50 states). Also, it is impossible to recreate the shapes we can see in the count and proportional graphs since states are fixed on the y axis.
 
+## Final datavisulisation
+### Ordering States
 I decided to compromise by adding an ordering method based on legal status frequencies for each states.
+```{r }
+data2 <-  data %>%group_by(State, `legal status`) %>% 
+  filter(`legal status`=="No Law")%>%mutate(count=ifelse(year==1995,n(),NA)) %>% 
+  ungroup() %>% filter(year==1995)%>%
+  select(State, count) %>% unique()
 
-```{r fig.width=12}
-data2 <-  data %>%group_by(State, `legal status`) %>% filter(`legal status`=="No Law")%>%mutate(count=ifelse(year==1995,n(),NA)) %>% ungroup() %>% filter(year==1995)%>%select(State, count) %>% unique()
+data3 <- data %>%group_by(State, `legal status`) %>% 
+  filter(`legal status`=="Statutory Ban")%>%
+  mutate(count=ifelse(year==1995,-n(),NA)) %>% 
+  ungroup()%>% 
+  filter(year==1995)%>%select(State, count) %>% 
+  unique()
 
-data3 <- data %>%group_by(State, `legal status`) %>% filter(`legal status`=="Statutory Ban")%>%mutate(count=ifelse(year==1995,-n(),NA)) %>% ungroup()%>% filter(year==1995)%>%select(State, count) %>% unique()
+data4 <-  data %>% 
+  group_by(State, `legal status`) %>% mutate(count2=n()) %>% 
+  ungroup() %>% 
+  filter(`legal status`=="Statutory Ban") %>% 
+  select(State, count2)%>% unique()
 
-data4 <-  data %>% group_by(State, `legal status`) %>% mutate(count2=n()) %>% ungroup() %>% filter(`legal status`=="Statutory Ban") %>% select(State, count2)%>% unique()
+data5 <-  data %>% group_by(State, `legal status`) %>% 
+  mutate(count3=n()) %>% 
+  ungroup() %>% 
+  filter(`legal status`=="Constitutional Ban") %>% 
+  select(State, count3)%>% unique()
 
-data5 <-  data %>% group_by(State, `legal status`) %>% mutate(count3=n()) %>% ungroup() %>% filter(`legal status`=="Constitutional Ban") %>% select(State, count3)%>% unique()
-
-data6 <- data %>% group_by(State, `legal status`) %>% mutate(count4=n()) %>% ungroup() %>% filter(`legal status`=="Legal") %>% select(State, count4)%>% unique()
+data6 <- data %>% group_by(State, `legal status`) %>% 
+  mutate(count4=n()) %>% 
+  ungroup() %>% 
+  filter(`legal status`=="Legal") %>% 
+  select(State, count4)%>% unique()
 
 data_f <- rbind(data2,data3)
 
@@ -98,14 +153,20 @@ data_f <- left_join(data_f, data4)
 data_f <- left_join(data_f,data5)
 data_f <- left_join(data_f,data6)
 
-data_f <- data_f %>% mutate(count2=ifelse(is.na(count2),0,count2)) %>% mutate(count3=ifelse(is.na(count3),0,count3))%>% mutate(count4=ifelse(is.na(count4),0,count4))
+data_f <- data_f %>% mutate(count2=ifelse(is.na(count2),0,count2)) %>% mutate(count3=ifelse(is.na(count3),0,count3))%>% 
+  mutate(count4=ifelse(is.na(count4),0,count4))
+
+levels<- data_f %>% 
+  arrange(count, desc(count2),desc(count3), count4) %>% 
+  select(State) %>% unique() %>% 
+  pull
 ```
 
-```{r,fig.height=9}
-levels<- data_f %>% arrange(count, desc(count2),desc(count3), count4) %>% select(State) %>% unique() %>% pull
+### Plot
 
+```{r,fig.height=7}
 ggplot(data) + 
-  geom_tile(aes(fill=fct_relevel(`legal status`,"Constitutional Ban","Statutory Ban","No Law", "Legal"),x=year, y=State),color="white", size=1.25)+
+  geom_tile(aes(fill=fct_relevel(`legal status`,"Constitutional Ban","Statutory Ban","No Law", "Legal"),x=year, y=State),color="white", size=0.8)+
   scale_fill_manual(values = c("#e66101","#fdb863","grey","#5e3c99"))+
   coord_equal()+
   scale_y_discrete(name="",limits=(levels))+
@@ -117,7 +178,8 @@ This y scale organization allows the viewer to assess "clusters" of similar stat
 
 
 
-#Let's do art
+# Let's do art
+When I showed my work to my #1 supporting beloved person, she noticed that the plot looks like a city landscape with a sun rising on skyscrappers.
 ```{r, fig.width=12}
 datart <- ggplot(data) + 
   geom_tile(aes(fill=fct_relevel(`legal status`,"Constitutional Ban","Statutory Ban","No Law", "Legal"),x=year, y=State), position="jitter", height=1.2, width=3.5)+
@@ -125,9 +187,11 @@ datart <- ggplot(data) +
   coord_equal()+
   coord_flip()+
   scale_x_reverse()+
+  labs(title="Same sex marriage legal status evolution in the USA - Sunrise")+
   scale_y_discrete(name="",limits=(levels))+
   theme_void()+
-  theme(legend.position = "none", panel.background = element_rect(fill = "transparent", colour = NA), plot.background = element_rect(fill = "transparent", colour = NA))
+  theme(legend.position = "none", panel.background = element_rect(fill = "transparent", colour = NA), plot.background = element_rect(fill = "transparent", colour = NA))+
+  theme(plot.title = element_text(hjust = 0.5,size = 14))
 
 datart
 

@@ -1,5 +1,5 @@
 ---
-title: First article and Submission for r/dataisbeautiful DataViz Battle
+title: First article and Submission for r/dataisbeautiful DataViz Battle of January
 author: Felix
 date: '2018-01-26'
 categories:
@@ -11,6 +11,7 @@ tags:
   - Tableau
 slug: first-article-and-entry-for-r-dataisbeautiful-dataviz
 banner: "img/Articles/Reddit-alien.png"
+output: html_document
 ---
 
 ```{r setup, include=F}
@@ -18,14 +19,13 @@ knitr::opts_chunk$set(echo = TRUE, warning=F, fig.align = "center", out.width = 
 ```
 
 
-##About this project
-As first article on this R, datascience and dataviz dedicated blog, I present to you my entry for the [DataViz battle of January 2018](https://www.reddit.com/r/dataisbeautiful/comments/7nm6ed/battle_dataviz_battle_for_the_month_of_january/). The rules can be find in the link.
+As first article on this R, datascience and dataviz dedicated blog, I present to you my entry for the [DataViz battle of January 2018](https://www.reddit.com/r/dataisbeautiful/comments/7nm6ed/battle_dataviz_battle_for_the_month_of_january/). The rules can be found in the link.
 
-##Data
+## Data
 This month, the data source is a [.htm webpage](http://aquatext.com/tables/algaegrwth.htm) containing several algae growthrates for several light and temperature conditions.
 
 
-##How I work on this
+## How I worked on this
 For this project I used :
 
 1. R for
@@ -39,9 +39,9 @@ For this project I used :
 
 So let's start with R !
 
-##Steps
+## Steps
 
-###Load Librairies
+### Load Librairies
 ```{r library loading,message=F,warning=F}
 library(devtools)
 library(tidyverse) #essential
@@ -57,7 +57,7 @@ library(packcircles)
 library(widgetframe)
 ```
 
-###Download database and import into R
+### Download database and import into R
 
 ```{r connect to data source}
 algae <- htmltab("http://aquatext.com/tables/algaegrwth.htm",2,header = 0)
@@ -104,7 +104,7 @@ frameWidget(datatable(algae), width = "95%")
 
 This it, data is tidy and ready to be saved and used in tableau !
 
-##Exploratory data analysis (with Tableau Dashboard)
+## Exploratory data analysis (with Tableau Dashboard)
 
 I recommend you open it as full screen.
 ```{r echo=F}
@@ -119,13 +119,13 @@ this dashboard was designed more for data exploration than knowledge presentatio
 2. More light is not directly linked to more growth, instead, it looks like a genus or specy preference.")
 
 
-###Facts
+### Facts
 
 Saying that I cannot control Light and Temperature and these variables vary from their minimum and maximum during the year, the best growing algae is **Chlorella ellipsoidea** as its mean growthrate is the highest. 
 
 
-##Hypothesis testing
-###Visualisation
+## Hypothesis testing
+### Visualisation
 Does temperature has a true effect on the algae of this dataset ? is Light really meaningless ? Let's get back in R !
 
 The strategy here is to model Temperature et Light effects over algae growth and perform statistical methods to draw approximate conclusions .
@@ -155,7 +155,7 @@ ggpaired(algae,x="Light", y="GrowthRate",id = "Specy",color = "GrowthRate",line.
   theme(legend.position = "top", plot.caption = element_text(hjust=0, face = "italic",size = 9), plot.title = element_text(hjust = 0.5))
 ```
 
-###Modelisation
+### Modelisation
 In order to assess and quantify the effect of Temperature and light on algae growth, we fit an anova model :
 
 ```{r,split=F}
@@ -188,7 +188,7 @@ So ... that explains why the most part of algae industry in France was able to s
 Thank you for reading and come back next month for the next dataviz battle !
 
 **************
-##Bonus 
+## Bonus 
 
 At the begining of this project, I tried to use only R to build the DataViz I wanted to make, but this quickly turned in a very complicated task...
 

@@ -1,0 +1,231 @@
+---
+title: Submission for r/dataisbeautiful Dataviz Battle of February
+author: "Felix"
+date: '2018-02-25'
+slug: submission-for-r-dataisbeautiful-dataviz-battle-of-february
+categories:
+  - Datavisualisation
+tags:
+  - reddit
+  - dataviz
+banner: "img/Articles/datart februrary.png"
+output: html_document
+metaAlignment: center
+---
+
+<script src="/rmarkdown-libs/htmlwidgets/htmlwidgets.js"></script>
+<script src="/rmarkdown-libs/pymjs/pym.v1.js"></script>
+<script src="/rmarkdown-libs/widgetframe-binding/widgetframe.js"></script>
+
+
+<p>This post reports the development process I carried for the <a href="https://www.reddit.com/r/dataisbeautiful/comments/7vegvf/battle_dataviz_battle_for_the_month_of_february/?ref=share&amp;ref_source=link">DataViz battle of February 2018</a>. The rules can be found in the link.</p>
+<div id="raw-data" class="section level2">
+<h2>Raw Data</h2>
+<p>This month, the data source is a on a <a href="%22https://raw.githubusercontent.com/zonination/samesmarriage/master/ssm.csv%22">github repo</a>. It contains all same-sex marriage legal status for each states of the USA from 1995 to 2015.</p>
+</div>
+<div id="import-data-from-github" class="section level2">
+<h2>Import Data (from github)</h2>
+<p>Found how to do it at <a href="https://github.com/opetchey/RREEBES/wiki/Reading-data-and-code-from-an-online-github-repository">Github/Opetchey</a></p>
+<pre class="r"><code>library(RCurl)
+library(tidyverse)
+raw_data &lt;- as_data_frame(read.csv(text=getURL(&quot;https://raw.githubusercontent.com/zonination/samesmarriage/master/ssm.csv&quot;)))
+
+str(raw_data) </code></pre>
+<pre><code>## Classes &#39;tbl_df&#39;, &#39;tbl&#39; and &#39;data.frame&#39;:    50 obs. of  23 variables:
+##  $ State : Factor w/ 50 levels &quot;Alabama&quot;,&quot;Alaska&quot;,..: 1 2 3 4 5 6 7 8 9 10 ...
+##  $ abbrev: Factor w/ 50 levels &quot;AK&quot;,&quot;AL&quot;,&quot;AR&quot;,..: 2 1 4 3 5 6 7 8 9 10 ...
+##  $ X1995 : Factor w/ 2 levels &quot;No Law&quot;,&quot;Statutory Ban&quot;: 1 1 2 1 2 1 2 1 2 1 ...
+##  $ X1996 : Factor w/ 2 levels &quot;No Law&quot;,&quot;Statutory Ban&quot;: 1 2 2 1 2 1 2 2 2 2 ...
+##  $ X1997 : Factor w/ 2 levels &quot;No Law&quot;,&quot;Statutory Ban&quot;: 1 2 2 2 2 1 2 2 2 2 ...
+##  $ X1998 : Factor w/ 3 levels &quot;Constitutional Ban&quot;,..: 3 1 3 3 3 2 3 3 3 3 ...
+##  $ X1999 : Factor w/ 3 levels &quot;Constitutional Ban&quot;,..: 3 1 3 3 3 2 3 3 3 3 ...
+##  $ X2000 : Factor w/ 3 levels &quot;Constitutional Ban&quot;,..: 3 1 3 3 3 3 3 3 3 3 ...
+##  $ X2001 : Factor w/ 3 levels &quot;Constitutional Ban&quot;,..: 3 1 3 3 3 3 3 3 3 3 ...
+##  $ X2002 : Factor w/ 3 levels &quot;Constitutional Ban&quot;,..: 3 1 3 3 3 3 3 3 3 3 ...
+##  $ X2003 : Factor w/ 4 levels &quot;Constitutional Ban&quot;,..: 4 1 4 4 4 4 4 4 4 4 ...
+##  $ X2004 : Factor w/ 4 levels &quot;Constitutional Ban&quot;,..: 4 1 4 1 4 4 4 4 4 1 ...
+##  $ X2005 : Factor w/ 4 levels &quot;Constitutional Ban&quot;,..: 4 1 4 1 4 4 4 4 4 1 ...
+##  $ X2006 : Factor w/ 4 levels &quot;Constitutional Ban&quot;,..: 1 1 4 1 4 1 4 4 4 1 ...
+##  $ X2007 : Factor w/ 4 levels &quot;Constitutional Ban&quot;,..: 1 1 4 1 4 1 4 4 4 1 ...
+##  $ X2008 : Factor w/ 4 levels &quot;Constitutional Ban&quot;,..: 1 1 1 1 1 1 2 4 1 1 ...
+##  $ X2009 : Factor w/ 4 levels &quot;Constitutional Ban&quot;,..: 1 1 1 1 1 1 2 4 1 1 ...
+##  $ X2010 : Factor w/ 4 levels &quot;Constitutional Ban&quot;,..: 1 1 1 1 1 1 2 4 1 1 ...
+##  $ X2011 : Factor w/ 4 levels &quot;Constitutional Ban&quot;,..: 1 1 1 1 1 1 2 4 1 1 ...
+##  $ X2012 : Factor w/ 4 levels &quot;Constitutional Ban&quot;,..: 1 1 1 1 1 1 2 4 1 1 ...
+##  $ X2013 : Factor w/ 3 levels &quot;Constitutional Ban&quot;,..: 1 1 1 1 2 1 2 2 1 1 ...
+##  $ X2014 : Factor w/ 2 levels &quot;Constitutional Ban&quot;,..: 1 2 2 1 2 2 2 2 1 1 ...
+##  $ X2015 : Factor w/ 1 level &quot;Legal&quot;: 1 1 1 1 1 1 1 1 1 1 ...</code></pre>
+<p>Looks righ but years column contains “X” at the begining, weird… let’s fix that !</p>
+</div>
+<div id="tidy-data" class="section level2">
+<h2>Tidy data</h2>
+<pre class="r"><code>library(devtools)
+library(stringr)
+library(tidyverse)
+library(widgetframe)
+library(DT)
+library(htmlwidgets)
+
+data_colnames &lt;- colnames(raw_data)
+
+data_colnames &lt;- ifelse(str_detect(data_colnames,&#39;[:digit:]+&#39;), str_extract(data_colnames,&quot;[:digit:]+&quot;), data_colnames)
+
+colnames(raw_data) &lt;- data_colnames
+str(raw_data)</code></pre>
+<pre><code>## Classes &#39;tbl_df&#39;, &#39;tbl&#39; and &#39;data.frame&#39;:    50 obs. of  23 variables:
+##  $ State : Factor w/ 50 levels &quot;Alabama&quot;,&quot;Alaska&quot;,..: 1 2 3 4 5 6 7 8 9 10 ...
+##  $ abbrev: Factor w/ 50 levels &quot;AK&quot;,&quot;AL&quot;,&quot;AR&quot;,..: 2 1 4 3 5 6 7 8 9 10 ...
+##  $ 1995  : Factor w/ 2 levels &quot;No Law&quot;,&quot;Statutory Ban&quot;: 1 1 2 1 2 1 2 1 2 1 ...
+##  $ 1996  : Factor w/ 2 levels &quot;No Law&quot;,&quot;Statutory Ban&quot;: 1 2 2 1 2 1 2 2 2 2 ...
+##  $ 1997  : Factor w/ 2 levels &quot;No Law&quot;,&quot;Statutory Ban&quot;: 1 2 2 2 2 1 2 2 2 2 ...
+##  $ 1998  : Factor w/ 3 levels &quot;Constitutional Ban&quot;,..: 3 1 3 3 3 2 3 3 3 3 ...
+##  $ 1999  : Factor w/ 3 levels &quot;Constitutional Ban&quot;,..: 3 1 3 3 3 2 3 3 3 3 ...
+##  $ 2000  : Factor w/ 3 levels &quot;Constitutional Ban&quot;,..: 3 1 3 3 3 3 3 3 3 3 ...
+##  $ 2001  : Factor w/ 3 levels &quot;Constitutional Ban&quot;,..: 3 1 3 3 3 3 3 3 3 3 ...
+##  $ 2002  : Factor w/ 3 levels &quot;Constitutional Ban&quot;,..: 3 1 3 3 3 3 3 3 3 3 ...
+##  $ 2003  : Factor w/ 4 levels &quot;Constitutional Ban&quot;,..: 4 1 4 4 4 4 4 4 4 4 ...
+##  $ 2004  : Factor w/ 4 levels &quot;Constitutional Ban&quot;,..: 4 1 4 1 4 4 4 4 4 1 ...
+##  $ 2005  : Factor w/ 4 levels &quot;Constitutional Ban&quot;,..: 4 1 4 1 4 4 4 4 4 1 ...
+##  $ 2006  : Factor w/ 4 levels &quot;Constitutional Ban&quot;,..: 1 1 4 1 4 1 4 4 4 1 ...
+##  $ 2007  : Factor w/ 4 levels &quot;Constitutional Ban&quot;,..: 1 1 4 1 4 1 4 4 4 1 ...
+##  $ 2008  : Factor w/ 4 levels &quot;Constitutional Ban&quot;,..: 1 1 1 1 1 1 2 4 1 1 ...
+##  $ 2009  : Factor w/ 4 levels &quot;Constitutional Ban&quot;,..: 1 1 1 1 1 1 2 4 1 1 ...
+##  $ 2010  : Factor w/ 4 levels &quot;Constitutional Ban&quot;,..: 1 1 1 1 1 1 2 4 1 1 ...
+##  $ 2011  : Factor w/ 4 levels &quot;Constitutional Ban&quot;,..: 1 1 1 1 1 1 2 4 1 1 ...
+##  $ 2012  : Factor w/ 4 levels &quot;Constitutional Ban&quot;,..: 1 1 1 1 1 1 2 4 1 1 ...
+##  $ 2013  : Factor w/ 3 levels &quot;Constitutional Ban&quot;,..: 1 1 1 1 2 1 2 2 1 1 ...
+##  $ 2014  : Factor w/ 2 levels &quot;Constitutional Ban&quot;,..: 1 2 2 1 2 2 2 2 1 1 ...
+##  $ 2015  : Factor w/ 1 level &quot;Legal&quot;: 1 1 1 1 1 1 1 1 1 1 ...</code></pre>
+<p>Perfect !</p>
+<p>Now, let’s turn year variables as one with gather to anticipate plotting needs</p>
+<pre class="r"><code>data &lt;- raw_data %&gt;% gather (key=year, value=`legal status`, c(&quot;1995&quot;:&quot;2015&quot;))
+data$year &lt;-  as.numeric(data$year)
+str(data)</code></pre>
+<pre><code>## Classes &#39;tbl_df&#39;, &#39;tbl&#39; and &#39;data.frame&#39;:    1050 obs. of  4 variables:
+##  $ State       : Factor w/ 50 levels &quot;Alabama&quot;,&quot;Alaska&quot;,..: 1 2 3 4 5 6 7 8 9 10 ...
+##  $ abbrev      : Factor w/ 50 levels &quot;AK&quot;,&quot;AL&quot;,&quot;AR&quot;,..: 2 1 4 3 5 6 7 8 9 10 ...
+##  $ year        : num  1995 1995 1995 1995 1995 ...
+##  $ legal status: chr  &quot;No Law&quot; &quot;No Law&quot; &quot;Statutory Ban&quot; &quot;No Law&quot; ...</code></pre>
+<pre class="r"><code>widgetframe::frameWidget(datatable(data))</code></pre>
+<div id="htmlwidget-1" style="width:100%;height:480px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-1">{"x":{"url":"2018-02-25-submission-for-r-dataisbeautiful-dataviz-battle-of-february_files/figure-html4//widgets/widget_unnamed-chunk-3.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
+</div>
+<div id="how-data-looks-like-first-data-vizs" class="section level2">
+<h2>How data looks like : First Data Viz’s</h2>
+<div id="count-by-legal-status-over-the-years" class="section level3">
+<h3>Count by legal status over the years</h3>
+<pre class="r"><code>ggplot(data, aes(x=year)) + 
+  geom_bar(aes(fill=fct_relevel(`legal status`,&quot;Constitutional Ban&quot;,&quot;Statutory Ban&quot;,&quot;No Law&quot;, &quot;Legal&quot;)))+
+  scale_fill_brewer(type=&quot;div&quot;, palette=&quot;PuOr&quot;)+
+  theme(legend.position = &quot;bottom&quot;)+
+  labs(fill=&quot;Legal Status&quot;)</code></pre>
+<p><img src="/rmarkdown-libs/figure-html4/unnamed-chunk-4-1.png" width="90%" style="display: block; margin: auto;" /></p>
+</div>
+<div id="proportionnal-legal-status-over-the-years" class="section level3">
+<h3>Proportionnal legal status over the years</h3>
+<pre class="r"><code>ggplot(data, aes(x=year, y=State, group=`legal status`)) + 
+  geom_area(aes(fill=`legal status`), size=1)+
+  scale_fill_brewer(type=&quot;div&quot;, palette=&quot;PuOr&quot;)</code></pre>
+<p><img src="/rmarkdown-libs/figure-html4/unnamed-chunk-5-1.png" width="90%" style="display: block; margin: auto;" />
+That’s an odd interesting chart !!</p>
+<p>Let’s try again</p>
+<pre class="r"><code>ggplot(data, aes(x=year, group=fct_infreq(`legal status`),fill=fct_relevel(`legal status`,&quot;Constitutional Ban&quot;,&quot;Statutory Ban&quot;,&quot;No Law&quot;, &quot;Legal&quot;))) + 
+  geom_area(stat=&quot;count&quot;, position=&quot;fill&quot;)+
+  scale_fill_brewer(type=&quot;div&quot;, palette=&quot;PuOr&quot;)+theme(legend.position = &quot;bottom&quot;)+
+  labs(fill=&quot;Legal Status&quot;)</code></pre>
+<p><img src="/rmarkdown-libs/figure-html4/unnamed-chunk-6-1.png" width="90%" style="display: block; margin: auto;" /></p>
+<p>The two previous plot are good to see global legal status evolution in the USA but it lacks details regarding state by state history. Data’s level of detail make States history assessable, it would be a shame not using it.</p>
+</div>
+</div>
+<div id="states-background-year-by-year" class="section level2">
+<h2>States background, year by year</h2>
+<p>A tile graph is an appropriate template to build this visualisation : squares delimits states and year as discrete scales. Indeed, data doesn’t contain the precise date when legal status change, thus years can be considered on discrete scale.</p>
+<pre class="r"><code>ggplot(data) + 
+  geom_tile(aes(fill=fct_relevel(`legal status`,&quot;Constitutional Ban&quot;,&quot;Statutory Ban&quot;,&quot;No Law&quot;, &quot;Legal&quot;),x=year, y=State),color=&quot;white&quot;, size=0.8)+
+  scale_fill_manual(values = c(&quot;#e66101&quot;,&quot;#fdb863&quot;,&quot;grey&quot;,&quot;#5e3c99&quot;))+
+  coord_equal()+
+  labs(fill=&quot;Legal Status :&quot;, title=&quot;Same Sex Marriage Legal Status Evolution in USA since 1995&quot;)+
+  theme(legend.position = &quot;bottom&quot;, plot.title = element_text(hjust=0.5),panel.background = element_blank())</code></pre>
+<p><img src="/rmarkdown-libs/figure-html4/unnamed-chunk-7-1.png" width="90%" style="display: block; margin: auto;" />
+Alphabetical order is practical to find a State one’s want more details on, but it is also more difficult to contextualize the information as global trends tends to fade into categorical complexity (here, the 50 states). Also, it is impossible to recreate the shapes we can see in the count and proportional graphs since states are fixed on the y axis.</p>
+</div>
+<div id="final-datavisulisation" class="section level2">
+<h2>Final datavisulisation</h2>
+<div id="ordering-states" class="section level3">
+<h3>Ordering States</h3>
+<p>I decided to compromise by adding an ordering method based on legal status frequencies for each states.</p>
+<pre class="r"><code>data2 &lt;-  data %&gt;%group_by(State, `legal status`) %&gt;% 
+  filter(`legal status`==&quot;No Law&quot;)%&gt;%mutate(count=ifelse(year==1995,n(),NA)) %&gt;% 
+  ungroup() %&gt;% filter(year==1995)%&gt;%
+  select(State, count) %&gt;% unique()
+
+data3 &lt;- data %&gt;%group_by(State, `legal status`) %&gt;% 
+  filter(`legal status`==&quot;Statutory Ban&quot;)%&gt;%
+  mutate(count=ifelse(year==1995,-n(),NA)) %&gt;% 
+  ungroup()%&gt;% 
+  filter(year==1995)%&gt;%select(State, count) %&gt;% 
+  unique()
+
+data4 &lt;-  data %&gt;% 
+  group_by(State, `legal status`) %&gt;% mutate(count2=n()) %&gt;% 
+  ungroup() %&gt;% 
+  filter(`legal status`==&quot;Statutory Ban&quot;) %&gt;% 
+  select(State, count2)%&gt;% unique()
+
+data5 &lt;-  data %&gt;% group_by(State, `legal status`) %&gt;% 
+  mutate(count3=n()) %&gt;% 
+  ungroup() %&gt;% 
+  filter(`legal status`==&quot;Constitutional Ban&quot;) %&gt;% 
+  select(State, count3)%&gt;% unique()
+
+data6 &lt;- data %&gt;% group_by(State, `legal status`) %&gt;% 
+  mutate(count4=n()) %&gt;% 
+  ungroup() %&gt;% 
+  filter(`legal status`==&quot;Legal&quot;) %&gt;% 
+  select(State, count4)%&gt;% unique()
+
+data_f &lt;- rbind(data2,data3)
+
+data_f &lt;- left_join(data_f, data4)
+data_f &lt;- left_join(data_f,data5)
+data_f &lt;- left_join(data_f,data6)
+
+data_f &lt;- data_f %&gt;% mutate(count2=ifelse(is.na(count2),0,count2)) %&gt;% mutate(count3=ifelse(is.na(count3),0,count3))%&gt;% 
+  mutate(count4=ifelse(is.na(count4),0,count4))
+
+levels&lt;- data_f %&gt;% 
+  arrange(count, desc(count2),desc(count3), count4) %&gt;% 
+  select(State) %&gt;% unique() %&gt;% 
+  pull</code></pre>
+</div>
+<div id="plot" class="section level3">
+<h3>Plot</h3>
+<pre class="r"><code>ggplot(data) + 
+  geom_tile(aes(fill=fct_relevel(`legal status`,&quot;Constitutional Ban&quot;,&quot;Statutory Ban&quot;,&quot;No Law&quot;, &quot;Legal&quot;),x=year, y=State),color=&quot;white&quot;, size=0.8)+
+  scale_fill_manual(values = c(&quot;#e66101&quot;,&quot;#fdb863&quot;,&quot;grey&quot;,&quot;#5e3c99&quot;))+
+  coord_equal()+
+  scale_y_discrete(name=&quot;&quot;,limits=(levels))+
+  labs(fill=&quot;Legal Status :&quot;, title=&quot;Same Sex Marriage Legal Status Evolution in USA since 1995&quot;)+
+  theme(legend.position = &quot;bottom&quot;, plot.title = element_text(hjust=0.5),panel.background = element_blank())</code></pre>
+<p><img src="/rmarkdown-libs/figure-html4/unnamed-chunk-9-1.png" width="90%" style="display: block; margin: auto;" /></p>
+<p>This y scale organization allows the viewer to assess “clusters” of similar states regarding same sex marriage legal status evolution. It is also easier to identify with states were the first ones to constitutionaly ban / legalize it. Trends are also more evident : 2004, 2005 &amp; 2006 were clearly important years during which most states banned same-sex marriage</p>
+</div>
+</div>
+<div id="lets-do-art" class="section level1">
+<h1>Let’s do art</h1>
+<p>When I showed my work to my #1 supporting beloved person, she noticed that the plot looks like a city landscape with a sun rising on skyscrappers.</p>
+<pre class="r"><code>datart &lt;- ggplot(data) + 
+  geom_tile(aes(fill=fct_relevel(`legal status`,&quot;Constitutional Ban&quot;,&quot;Statutory Ban&quot;,&quot;No Law&quot;, &quot;Legal&quot;),x=year, y=State), position=&quot;jitter&quot;, height=1.2, width=3.5)+
+  scale_fill_manual(values = c(&quot;#e66101&quot;,&quot;#fdb863&quot;,&quot;grey&quot;,&quot;#5e3c99&quot;))+
+  coord_equal()+
+  coord_flip()+
+  scale_x_reverse()+
+  labs(title=&quot;Same sex marriage legal status evolution in the USA - Sunrise&quot;)+
+  scale_y_discrete(name=&quot;&quot;,limits=(levels))+
+  theme_void()+
+  theme(legend.position = &quot;none&quot;, panel.background = element_rect(fill = &quot;transparent&quot;, colour = NA), plot.background = element_rect(fill = &quot;transparent&quot;, colour = NA))+
+  theme(plot.title = element_text(hjust = 0.5,size = 14))
+
+datart</code></pre>
+<p><img src="/rmarkdown-libs/figure-html4/unnamed-chunk-10-1.png" width="90%" style="display: block; margin: auto;" /></p>
+</div>

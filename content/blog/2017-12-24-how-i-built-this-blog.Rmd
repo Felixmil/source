@@ -10,9 +10,6 @@ tags:
   - blogdown
   - rmarkdown
   - github
-thumbnailImage: https://talesofr.files.wordpress.com/2017/08/hexbins.png?w=584
-coverimage : https://trello-attachments.s3.amazonaws.com/5a40e1ff1f593f7702819485/5a40e24b6ee6f3ebfdb87d8e/58bf5b2a92a9bfb10826dd6b21f10c5e/blog.jpg
-thumbnailImagePosition : left
 metaAlignment: center
 output: html_document
 banner: "img/Articles/blog.jpg"

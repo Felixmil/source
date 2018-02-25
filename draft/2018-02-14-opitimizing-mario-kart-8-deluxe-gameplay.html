@@ -1,0 +1,461 @@
+---
+title: Opitimizing Mario Kart 8 Deluxe Gameplay
+author: Félix
+date: '2018-02-14'
+categories:
+  - Knowledge Discovery
+slug: opitimizing-mario-kart-8-deluxe-gameplay
+---
+
+<script src="/rmarkdown-libs/htmlwidgets/htmlwidgets.js"></script>
+<script src="/rmarkdown-libs/d3/d3.min.js"></script>
+<script src="/rmarkdown-libs/d3-tip/index-min.js"></script>
+<link href="/rmarkdown-libs/d3panels/d3panels.min.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/d3panels/d3panels.min.js"></script>
+<script src="/rmarkdown-libs/qtlcharts_iplotCorr/iplotCorr.js"></script>
+<script src="/rmarkdown-libs/qtlcharts_iplotCorr/iplotCorr_noscat.js"></script>
+<script src="/rmarkdown-libs/iplotCorr-binding/iplotCorr.js"></script>
+
+
+<p>#Import data</p>
+<pre class="r"><code>library(readxl)
+Char&lt;- read_xlsx(&quot;Mario Kart 8 Deluxe Stat.xlsx&quot;,sheet = &quot;Char&quot;,col_names = T, col_types = c(&quot;text&quot;,rep(&quot;numeric&quot;, 12)))
+
+Kart &lt;- read_xlsx(&quot;Mario Kart 8 Deluxe Stat.xlsx&quot;,sheet = &quot;Kart&quot;,col_names = T, col_types = c(&quot;text&quot;,rep(&quot;numeric&quot;, 12)))
+
+Tire &lt;- read_xlsx(&quot;Mario Kart 8 Deluxe Stat.xlsx&quot;,sheet = &quot;Tire&quot;,col_names = T, col_types = c(&quot;text&quot;,rep(&quot;numeric&quot;, 12)))
+
+Glide &lt;- read_xlsx(&quot;Mario Kart 8 Deluxe Stat.xlsx&quot;,sheet = &quot;Glide&quot;,col_names = T, col_types = c(&quot;text&quot;,rep(&quot;numeric&quot;, 12)))
+
+
+library(tidyverse)
+Char&lt;-Char %&gt;% add_column(Type=&quot;Char&quot;, .after=&#39;ID&#39;)
+Kart &lt;- Kart %&gt;% add_column(Type=&quot;Kart&quot;, .after=&#39;ID&#39;)
+Tire &lt;- Tire %&gt;% add_column(Type=&quot;Tire&quot;, .after=&#39;ID&#39;)
+Glide &lt;- Glide %&gt;% add_column(Type=&quot;Glide&quot;, .after=&#39;ID&#39;)
+
+data &lt;-  full_join(Char, Kart) %&gt;% full_join(Glide) %&gt;% full_join(Tire)</code></pre>
+<p>#compute mean speed and handling</p>
+<pre class="r"><code>data &lt;- data %&gt;%mutate(Speed_mean=rowMeans(data[grepl(&quot;Speed&quot;, names(data))])) %&gt;% mutate(Handling_mean=rowMeans(data[grepl(&quot;Handling&quot;, names(data))]))</code></pre>
+<pre class="r"><code>library(qtlcharts)
+iplotCorr(data %&gt;% filter(Type==&quot;Char&quot;) %&gt;% select(-ID, -Type, -Speed_Land:-Speed_Gliding,-Handling_Land:-Handling_Gliding))</code></pre>
+<pre><code>## Set screen size to height=700 x width=1000</code></pre>
+<div id="htmlwidget-1" style="width:672px;height:480px;" class="iplotCorr html-widget"></div>
+<script type="application/json" data-for="htmlwidget-1">{"x":{"data":{"indID":["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16"],"var":["Accel","Weight","Traction","M-turbo","Speed_mean","Handling_mean"],"corr":[[1,-0.95373,0.70564,0.93776,-0.95722,0.93075],[-0.95373,1,-0.80192,-0.97138,0.97743,-0.96181],[0.70564,-0.80192,1,0.78091,-0.80651,0.81637],[0.93776,-0.97138,0.78091,1,-0.98376,0.9716],[-0.95722,0.97743,-0.80651,-0.98376,1,-0.98719],[0.93075,-0.96181,0.81637,0.9716,-0.98719,1]],"rows":[0,1,2,3,4,5],"cols":[0,1,2,3,4,5],"dat":[[4,4.25,4.25,4.25,4,4,4,3.75,3.75,3.5,3.5,3.25,3.25,3.25,3,3],[2,2,2.25,2.5,2.5,2.75,2.75,3,3.25,3.5,3.5,3.75,4.5,4,4.25,4.5],[4.25,3.75,4,3.5,4.25,4,3.75,3.75,3.25,3.5,3.25,3.75,3.25,3,3.25,3],[4,4,3.75,3.75,3.75,3.5,3.5,3.5,3.5,3.25,3.25,3.25,3,3,2.75,2.75],[2.375,2.375,2.625,2.875,2.875,3.125,3.375,3.625,3.625,3.875,3.875,4.125,4.375,4.625,4.875,4.875],[4.875,4.625,4.375,4.125,4.375,4.125,3.875,3.625,3.625,3.375,3.625,3.125,3.125,2.875,2.625,2.375]],"group":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],"scatterplots":true},"chartOpts":null},"evals":[],"jsHooks":[]}</script>
+<p>#How characters are distributed between Acceleration and Speed</p>
+<pre class="r"><code>ggplot(data %&gt;% filter(Type==&quot;Char&quot;), aes(x=Speed_mean,y=Accel))+geom_point(aes(size=Weight, fill=`M-turbo`), pch=21)+ggrepel::geom_text_repel(aes(label=ID), min.segment.length = 0.1,point.padding = unit(1.2, &#39;lines&#39;),box.padding = unit(0.6, &#39;lines&#39;), force=2)+viridis::scale_fill_viridis()</code></pre>
+<p><img src="/rmarkdown-libs/figure-html4/unnamed-chunk-4-1.png" width="672" />
+Fastest characters are also the heaviest and the ones with lowest acceleration, handling and Mini-turbo</p>
+<p>#Wich Kart provide the best bonus Speed/Accelaration ?</p>
+<pre class="r"><code>ggplot(data %&gt;% filter(Type==&quot;Kart&quot;), aes(x=Speed_mean,y=Accel))+geom_point(aes(size=Weight, fill=`M-turbo`), pch=21)+ggrepel::geom_text_repel(aes(label=ID), min.segment.length = 0.1,point.padding = unit(1.2, &#39;lines&#39;),box.padding = unit(0.6, &#39;lines&#39;), force=2)+viridis::scale_fill_viridis()+geom_rect(aes(ymin=-Inf, ymax=0, xmin=-Inf, xmax=0), alpha=0.01, fill=&quot;red&quot;)+geom_rect(aes(ymin=0, ymax=Inf, xmin=0, xmax=Inf), alpha=0.01, fill=&quot;green&quot;)</code></pre>
+<p><img src="/rmarkdown-libs/figure-html4/unnamed-chunk-5-1.png" width="672" /></p>
+<p><strong>A Speed/acceleration Bonus Ratio would be good to condensate information</strong></p>
+<pre class="r"><code>data &lt;- data %&gt;% mutate(&quot;Bonus_Rate&quot;=ifelse(Speed_mean &gt; Accel, abs(Speed_mean/Accel),abs(Accel/Speed_mean)))
+
+ggplot(data %&gt;% filter(Type==&quot;Kart&quot;), aes(Bonus_Rate, ID))+geom_point()+ggrepel::geom_text_repel(aes(label=paste(Speed_mean,&quot;/&quot;,Accel)), min.segment.length = 0.1,point.padding = unit(1.2, &#39;lines&#39;),box.padding = unit(0.6, &#39;lines&#39;), force=2)</code></pre>
+<pre><code>## Warning: Removed 1 rows containing missing values (geom_point).</code></pre>
+<pre><code>## Warning: Removed 1 rows containing missing values (geom_text_repel).</code></pre>
+<p><img src="/rmarkdown-libs/figure-html4/unnamed-chunk-6-1.png" width="672" />
+W 25 Silver Arrow and Cat Cruiser provides the most bonus regarding to malus (4 times more bonus than malus)</p>
+<pre class="r"><code>data$total &lt;- rowSums(data[,c(7,8,13:17)], na.rm = T)
+
+data %&gt;%group_by(Type) %&gt;%filter(total==max(total, na.rm=T))</code></pre>
+<pre><code>## # A tibble: 4 x 18
+## # Groups:   Type [4]
+##   ID       Type  Speed_Land `Speed_Anti-G` Speed_Water Speed_Gliding Accel
+##   &lt;chr&gt;    &lt;chr&gt;      &lt;dbl&gt;          &lt;dbl&gt;       &lt;dbl&gt;         &lt;dbl&gt; &lt;dbl&gt;
+## 1 Baby Pe~ Char       2.25           2.00        2.50          2.75  4.00 
+## 2 W 25 Si~ Kart      -0.250          0.250      -0.250         0     0.250
+## 3 Cloud G~ Glide     -0.250          0.250       0            -0.250 0.250
+## 4 Roller   Tire      -0.500         -0.500       0             0     0.500
+## # ... with 11 more variables: Weight &lt;dbl&gt;, Handling_Land &lt;dbl&gt;,
+## #   `Handling_Anti-G` &lt;dbl&gt;, Handling_Water &lt;dbl&gt;, Handling_Gliding &lt;dbl&gt;,
+## #   Traction &lt;dbl&gt;, `M-turbo` &lt;dbl&gt;, Speed_mean &lt;dbl&gt;,
+## #   Handling_mean &lt;dbl&gt;, Bonus_Rate &lt;dbl&gt;, total &lt;dbl&gt;</code></pre>
+<p>Which Char-Kart-Tire-Glide is the best combination to maximize performance ?
+The parameters that need to be optimized are :</p>
+<p>-Speed
+-Acceleration
+-Handling
+-Turbo</p>
+<p>Weight is mostly players preference depending on the kind of gameplay, as seen before :
+-High wheight have best speed. Fits players that can dodge most enemy items, don’t want to be pushed and are sure to stay on the tracks.
+-Low Wheight have best acceleration. Fits players that want return to max speed faster after getting ruined by a blue shell and are able to dodge the big ones.</p>
+<p>Note that lighter characters have Higher Handling (better turns) and better Turbo (takes less time to trigger and last longer). This is why I prefer Medium-Light characters: even if Turbo are not super-fast, I can trigger turbo more often and commit few errors (<em>who doesn’t ?</em>) without being severly punished.</p>
+<div id="generation-of-all-combinations" class="section level2">
+<h2>Generation of all combinations</h2>
+<pre class="r"><code>#method1
+library(gtools)
+
+comb &lt;- as_data_frame(permutations(n=length(data$ID),r=4,v=data$ID, repeats.allowed = F)) %&gt;% filter(V1 %in% Char$ID &amp; V2 %in% Kart$ID &amp; V3 %in% Tire$ID &amp; V4 %in% Glide$ID)
+
+names(comb)[1] &lt;- &quot;ID&quot;
+comb1 &lt;- inner_join(comb, data, by=&quot;ID&quot;)
+
+names(comb)[1] &lt;- &quot;V1&quot;
+names(comb)[2] &lt;- &quot;ID&quot;
+comb2 &lt;- inner_join(comb, data, by=&quot;ID&quot;)
+
+names(comb)[2] &lt;- &quot;V2&quot;
+names(comb)[3] &lt;- &quot;ID&quot;
+comb3 &lt;- inner_join(comb, data, by=&quot;ID&quot;)
+
+names(comb)[3] &lt;- &quot;V3&quot;
+names(comb)[4] &lt;- &quot;ID&quot;
+comb4 &lt;- inner_join(comb, data, by=&quot;ID&quot;)
+
+data_combo &lt;- comb1[,6:21]+comb2[,6:21]+comb3[,6:21]+comb4[,6:21]
+
+data_combo &lt;- cbind(comb[,1:4], data_combo)
+
+# Rename a column in R
+data_combo &lt;- comb1[,6:20]+comb2[,6:20]+comb3[,6:20]+comb4[,6:20]
+
+data_combo &lt;- cbind(comb[,1:4], data_combo)
+
+names(data_combo)[1]&lt;-&quot;Char&quot;
+names(data_combo)[2]&lt;-&quot;Kart&quot;
+names(data_combo)[3]&lt;-&quot;Tire&quot;
+names(data_combo)[4]&lt;-&quot;Glidder&quot;
+
+data_combo$ID &lt;- seq_len(nrow(data_combo))</code></pre>
+<pre class="r"><code>#method 2 (not working)
+data_combo &lt;- as.data.frame((data %&gt;% group_by(Type) %&gt;% sample_n(1) %&gt;% ungroup() %&gt;% mutate_if(is.numeric,sum) %&gt;% ungroup() %&gt;% mutate(ID=paste(ID, collapse=&quot; + &quot;)) %&gt;% select(-Type)%&gt;%unique()))
+
+test &lt;- replicate(5, { rbind(data_combo, (data %&gt;% group_by(Type) %&gt;% sample_n(1) %&gt;% ungroup() %&gt;% mutate_if(is.numeric,sum) %&gt;% ungroup() %&gt;% mutate(ID=paste(ID, collapse=&quot; + &quot;)) %&gt;% select(-Type)%&gt;%unique()))} )</code></pre>
+<pre class="r"><code>data_combo  &lt;- data_combo  %&gt;%mutate(Speed_mean=rowMeans(data_combo [grepl(&quot;Speed&quot;, names(data_combo ))])) %&gt;% mutate(Handling_mean=rowMeans(data_combo [grepl(&quot;Handling&quot;, names(data_combo ))]))
+
+data_combo$total &lt;- rowSums(data_combo[,c(9,15:18)], na.rm = T)
+
+data_combo$total_A_S &lt;- rowSums(data_combo[,c(9,17)])
+
+data_combo &lt;- data_combo %&gt;% mutate(A_SRatio= `Accel`/Speed_mean)</code></pre>
+<pre class="r"><code>library(skimr)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;skimr&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:dplyr&#39;:
+## 
+##     contains, ends_with, everything, matches, num_range, one_of,
+##     starts_with</code></pre>
+<pre class="r"><code>skim(data_combo)</code></pre>
+<pre><code>## Skim summary statistics
+##  n obs: 8064 
+##  n variables: 23 
+## 
+## Variable type: character 
+##  variable missing complete    n min max empty n_unique
+##      Char       0     8064 8064   4  13     0       16
+##   Glidder       0     8064 8064  10  13     0        4
+##      Kart       0     8064 8064   6  17     0       14
+##      Tire       0     8064 8064   4   8     0        9
+## 
+## Variable type: integer 
+##  variable missing complete    n   mean      sd p0     p25 median     p75
+##        ID       0     8064 8064 4032.5 2328.02  1 2016.75 4032.5 6048.25
+##  p100     hist
+##  8064 &lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2587&gt;
+## 
+## Variable type: numeric 
+##          variable missing complete    n  mean   sd    p0   p25 median
+##          A_SRatio       0     8064 8064  1.12 0.52  0.21  0.73   1.02
+##             Accel       0     8064 8064  3.4  0.83  1     2.75   3.5 
+##        Bonus_Rate    4736     3328 8064  5.96 1.87  3.03  4.61   5.67
+##   Handling_Anti-G       0     8064 8064  3.53 0.84  1     3      3.5 
+##  Handling_Gliding       0     8064 8064  3.5  0.85  1     3      3.5 
+##     Handling_Land       0     8064 8064  3.61 0.85  1     3      3.75
+##     Handling_mean       0     8064 8064  3.52 0.8   1.19  2.94   3.56
+##    Handling_Water       0     8064 8064  3.43 0.85  1     2.75   3.5 
+##           M-turbo       0     8064 8064  3.35 0.8   1     2.75   3.25
+##      Speed_Anti-G       0     8064 8064  3.37 0.93  0.75  2.75   3.25
+##     Speed_Gliding       0     8064 8064  3.43 0.92  1     2.75   3.5 
+##        Speed_Land       0     8064 8064  3.36 0.96  0.75  2.75   3.25
+##        Speed_mean       0     8064 8064  3.37 0.84  1.5   2.69   3.38
+##       Speed_Water       0     8064 8064  3.33 0.92  1     2.5    3.25
+##             total       0     8064 8064 16.95 2.17 10    15.44  17.06
+##         total_A_S       0     8064 8064  6.78 0.73  4.31  6.31   6.81
+##          Traction       0     8064 8064  3.31 0.84  0.75  2.75   3.25
+##            Weight       0     8064 8064  3.18 0.98  0.75  2.5    3.25
+##    p75  p100     hist
+##   1.42  3.83 &lt;U+2585&gt;&lt;U+2587&gt;&lt;U+2586&gt;&lt;U+2582&gt;&lt;U+2581&gt;&lt;U+2581&gt;&lt;U+2581&gt;&lt;U+2581&gt;
+##   4     5.75 &lt;U+2581&gt;&lt;U+2582&gt;&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2582&gt;&lt;U+2581&gt;
+##   7.19 11.79 &lt;U+2586&gt;&lt;U+2585&gt;&lt;U+2587&gt;&lt;U+2585&gt;&lt;U+2583&gt;&lt;U+2582&gt;&lt;U+2581&gt;&lt;U+2581&gt;
+##   4.25  5.75 &lt;U+2581&gt;&lt;U+2581&gt;&lt;U+2586&gt;&lt;U+2586&gt;&lt;U+2586&gt;&lt;U+2587&gt;&lt;U+2582&gt;&lt;U+2581&gt;
+##   4     5.75 &lt;U+2581&gt;&lt;U+2582&gt;&lt;U+2586&gt;&lt;U+2586&gt;&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2582&gt;&lt;U+2581&gt;
+##   4.25  5.75 &lt;U+2581&gt;&lt;U+2581&gt;&lt;U+2585&gt;&lt;U+2586&gt;&lt;U+2586&gt;&lt;U+2587&gt;&lt;U+2583&gt;&lt;U+2581&gt;
+##   4.12  5.62 &lt;U+2581&gt;&lt;U+2582&gt;&lt;U+2585&gt;&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2586&gt;&lt;U+2583&gt;&lt;U+2581&gt;
+##   4     5.75 &lt;U+2581&gt;&lt;U+2582&gt;&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2582&gt;&lt;U+2581&gt;
+##   4     5.75 &lt;U+2581&gt;&lt;U+2582&gt;&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2582&gt;&lt;U+2581&gt;
+##   4     5.75 &lt;U+2581&gt;&lt;U+2582&gt;&lt;U+2585&gt;&lt;U+2587&gt;&lt;U+2586&gt;&lt;U+2586&gt;&lt;U+2582&gt;&lt;U+2581&gt;
+##   4.25  5.75 &lt;U+2581&gt;&lt;U+2582&gt;&lt;U+2587&gt;&lt;U+2586&gt;&lt;U+2586&gt;&lt;U+2587&gt;&lt;U+2583&gt;&lt;U+2581&gt;
+##   4     5.75 &lt;U+2581&gt;&lt;U+2583&gt;&lt;U+2585&gt;&lt;U+2587&gt;&lt;U+2585&gt;&lt;U+2586&gt;&lt;U+2582&gt;&lt;U+2581&gt;
+##   4.06  5.12 &lt;U+2581&gt;&lt;U+2586&gt;&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2586&gt;&lt;U+2586&gt;&lt;U+2583&gt;
+##   4     5.75 &lt;U+2581&gt;&lt;U+2583&gt;&lt;U+2587&gt;&lt;U+2586&gt;&lt;U+2586&gt;&lt;U+2587&gt;&lt;U+2582&gt;&lt;U+2581&gt;
+##  18.56 22.69 &lt;U+2581&gt;&lt;U+2581&gt;&lt;U+2583&gt;&lt;U+2586&gt;&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2583&gt;&lt;U+2581&gt;
+##   7.31  8.56 &lt;U+2581&gt;&lt;U+2581&gt;&lt;U+2583&gt;&lt;U+2586&gt;&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2583&gt;&lt;U+2581&gt;
+##   4     5.75 &lt;U+2581&gt;&lt;U+2582&gt;&lt;U+2583&gt;&lt;U+2587&gt;&lt;U+2586&gt;&lt;U+2586&gt;&lt;U+2581&gt;&lt;U+2581&gt;
+##   4     5.75 &lt;U+2581&gt;&lt;U+2583&gt;&lt;U+2585&gt;&lt;U+2587&gt;&lt;U+2585&gt;&lt;U+2586&gt;&lt;U+2582&gt;&lt;U+2581&gt;</code></pre>
+<pre class="r"><code>data_combo %&gt;% filter(Speed_mean &gt; 3 &amp; Accel &gt; 3) %&gt;% top_n(10,A_SRatio)  %&gt;% arrange(desc(A_SRatio))</code></pre>
+<pre><code>##             Char              Kart     Tire       Glidder Speed_Land
+## 1          Luigi        Biddybuggy   Roller  Cloud Glider       2.25
+## 2          Mario        Biddybuggy   Roller  Cloud Glider       2.25
+## 3          Peach          Landship   Roller  Cloud Glider       2.25
+## 4  Tanooki Mario          Landship   Roller  Cloud Glider       2.25
+## 5      Cat Peach       Cat Cruiser   Button  Cloud Glider       2.50
+## 6      Cat Peach       Cat Cruiser   Roller  Super Glider       2.50
+## 7      Cat Peach       Cat Cruiser   Roller    Wario Wing       2.50
+## 8      Cat Peach          Landship Standard  Cloud Glider       2.50
+## 9      Cat Peach     Standard Kart   Roller  Cloud Glider       2.50
+## 10     Cat Peach W 25 Silver Arrow   Button  Cloud Glider       2.50
+## 11     Cat Peach W 25 Silver Arrow   Roller  Super Glider       2.50
+## 12     Cat Peach W 25 Silver Arrow   Roller    Wario Wing       2.50
+## 13         Luigi        Biddybuggy   Button Peach Parasol       2.50
+## 14         Mario        Biddybuggy   Button Peach Parasol       2.50
+## 15         Peach        Biddybuggy Standard  Cloud Glider       2.50
+## 16         Peach          Landship   Button Peach Parasol       2.50
+## 17 Tanooki Mario        Biddybuggy Standard  Cloud Glider       2.50
+## 18 Tanooki Mario          Landship   Button Peach Parasol       2.50
+##    Speed_Anti-G Speed_Water Speed_Gliding Accel Weight Handling_Land
+## 1          3.00        3.50          3.50  5.00   2.25          4.50
+## 2          3.00        3.50          3.50  5.00   2.25          4.25
+## 3          2.25        4.25          3.50  5.00   1.75          4.25
+## 4          2.25        4.25          3.50  5.00   2.00          4.25
+## 5          3.25        3.00          3.50  4.75   2.00          4.25
+## 6          2.50        3.25          4.00  4.75   2.25          4.50
+## 7          2.75        3.00          4.00  4.75   2.50          4.50
+## 8          2.50        4.00          3.25  4.75   2.00          4.25
+## 9          2.75        3.50          3.50  4.75   2.00          4.25
+## 10         3.50        3.00          3.25  4.75   1.75          4.25
+## 11         2.75        3.25          3.75  4.75   2.00          4.50
+## 12         3.00        3.00          3.75  4.75   2.25          4.50
+## 13         3.50        3.00          3.25  4.75   2.50          4.25
+## 14         3.50        3.00          3.25  4.75   2.50          4.00
+## 15         3.25        3.25          3.25  4.75   2.25          4.25
+## 16         2.75        3.75          3.25  4.75   2.00          4.00
+## 17         3.25        3.25          3.25  4.75   2.50          4.25
+## 18         2.75        3.75          3.25  4.75   2.25          4.00
+##    Handling_Anti-G Handling_Water Handling_Gliding Traction M-turbo
+## 1             4.50           4.00             4.50     3.25    5.00
+## 2             4.25           3.75             4.25     3.50    5.00
+## 3             3.75           4.25             4.25     4.25    5.00
+## 4             3.75           4.25             4.25     3.75    5.00
+## 5             4.25           3.50             4.25     3.25    4.50
+## 6             4.25           3.75             4.50     3.50    4.50
+## 7             4.00           4.00             4.50     3.25    4.50
+## 8             3.75           4.25             4.25     4.50    4.25
+## 9             4.25           3.75             4.50     3.50    4.50
+## 10            4.50           3.75             4.00     3.75    4.50
+## 11            4.50           4.00             4.25     4.00    4.50
+## 12            4.25           4.25             4.25     3.75    4.50
+## 13            4.25           4.00             4.00     2.75    4.75
+## 14            4.00           3.75             3.75     3.00    4.75
+## 15            4.25           3.75             4.25     4.00    4.50
+## 16            3.50           4.25             3.75     3.75    4.75
+## 17            4.25           3.75             4.25     3.50    4.50
+## 18            3.50           4.25             3.75     3.25    4.75
+##    Speed_mean Handling_mean Bonus_Rate   ID   total total_A_S A_SRatio
+## 1      3.0625        4.3750   8.607143 3077 20.6875    8.0625 1.632653
+## 2      3.0625        4.1250   8.607143 3581 20.6875    8.0625 1.632653
+## 3      3.0625        4.1250   9.034483 4733 21.4375    8.0625 1.632653
+## 4      3.0625        4.1250   9.034483 5741 20.9375    8.0625 1.632653
+## 5      3.0625        4.0625  10.518519 2125 19.6250    7.8125 1.551020
+## 6      3.0625        4.2500        NaN 2143 20.0625    7.8125 1.551020
+## 7      3.0625        4.2500        NaN 2144 19.8125    7.8125 1.551020
+## 8      3.0625        4.1250        NaN 2229 20.6875    7.8125 1.551020
+## 9      3.0625        4.1875        NaN 2393 20.0000    7.8125 1.551020
+## 10     3.0625        4.1250  10.518519 2485 20.1875    7.8125 1.551020
+## 11     3.0625        4.3125        NaN 2503 20.6250    7.8125 1.551020
+## 12     3.0625        4.3125        NaN 2504 20.3750    7.8125 1.551020
+## 13     3.0625        4.1250   5.940476 3062 19.4375    7.8125 1.551020
+## 14     3.0625        3.8750   5.940476 3566 19.4375    7.8125 1.551020
+## 15     3.0625        4.1250        NaN 4605 20.4375    7.8125 1.551020
+## 16     3.0625        3.8750   6.367816 4718 20.1875    7.8125 1.551020
+## 17     3.0625        4.1250        NaN 5613 19.9375    7.8125 1.551020
+## 18     3.0625        3.8750   6.367816 5726 19.6875    7.8125 1.551020</code></pre>
+<p>##Additional stats</p>
+<pre class="r"><code>#Land Speed and Handling are weighted (twice more important) for mean calculation since most part of the races happens on regular soil.
+
+data_combo  &lt;- data_combo %&gt;% rowwise() %&gt;% mutate(Speed_mean=weighted.mean(x=c(Speed_Land,`Speed_Anti-G`, Speed_Water, Speed_Gliding), w=c(2,2,1,1))) %&gt;% rowwise() %&gt;%mutate(Handling_mean=weighted.mean(x=c(Handling_Land,`Handling_Anti-G`, Handling_Water, Handling_Gliding), w=c(2,2,1,1)))
+
+data_combo &lt;- data_combo %&gt;% mutate(w_cat = cut(Weight,breaks = c(0,2,3,4,5,6),labels = c(&quot;Super Light&quot;,&quot;Light&quot;,&quot;Medium&quot;,&quot;Heavy&quot;, &quot;Super Heavy&quot;)))#Create Weigh categories
+
+data_combo &lt;- data_combo %&gt;% mutate(total_perf=as.numeric(Accel+Speed_mean+Handling_mean+Traction+`M-turbo`)) #Weigh is not included in the total_perf computing.
+
+data_combo &lt;- data_combo %&gt;% select(ID, Char:Glidder, total_perf, Speed_mean, Speed_Land:Weight,w_cat, Handling_mean,Handling_Land:Bonus_Rate) %&gt;% ungroup()</code></pre>
+<p>##Summary of data</p>
+<pre class="r"><code>library(skimr)
+library(ggridges)
+skim(data_combo)</code></pre>
+<pre><code>## Skim summary statistics
+##  n obs: 8064 
+##  n variables: 22 
+## 
+## Variable type: character 
+##  variable missing complete    n min max empty n_unique
+##      Char       0     8064 8064   4  13     0       16
+##   Glidder       0     8064 8064  10  13     0        4
+##      Kart       0     8064 8064   6  17     0       14
+##      Tire       0     8064 8064   4   8     0        9
+## 
+## Variable type: factor 
+##  variable missing complete    n n_unique
+##     w_cat       0     8064 8064        5
+##                                  top_counts ordered
+##  Lig: 2761, Med: 2549, Hea: 1381, Sup: 1223   FALSE
+## 
+## Variable type: integer 
+##  variable missing complete    n   mean      sd p0     p25 median     p75
+##        ID       0     8064 8064 4032.5 2328.02  1 2016.75 4032.5 6048.25
+##  p100     hist
+##  8064 &lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2587&gt;
+## 
+## Variable type: numeric 
+##          variable missing complete    n  mean   sd    p0   p25 median
+##             Accel       0     8064 8064  3.4  0.83  1     2.75   3.5 
+##        Bonus_Rate    4736     3328 8064  5.96 1.87  3.03  4.61   5.67
+##   Handling_Anti-G       0     8064 8064  3.53 0.84  1     3      3.5 
+##  Handling_Gliding       0     8064 8064  3.5  0.85  1     3      3.5 
+##     Handling_Land       0     8064 8064  3.61 0.85  1     3      3.75
+##     Handling_mean       0     8064 8064  3.54 0.81  1.12  2.96   3.54
+##    Handling_Water       0     8064 8064  3.43 0.85  1     2.75   3.5 
+##           M-turbo       0     8064 8064  3.35 0.8   1     2.75   3.25
+##      Speed_Anti-G       0     8064 8064  3.37 0.93  0.75  2.75   3.25
+##     Speed_Gliding       0     8064 8064  3.43 0.92  1     2.75   3.5 
+##        Speed_Land       0     8064 8064  3.36 0.96  0.75  2.75   3.25
+##        Speed_mean       0     8064 8064  3.37 0.86  1.38  2.67   3.38
+##       Speed_Water       0     8064 8064  3.33 0.92  1     2.5    3.25
+##        total_perf       0     8064 8064 16.97 2.1  10.38 15.54  17.04
+##          Traction       0     8064 8064  3.31 0.84  0.75  2.75   3.25
+##            Weight       0     8064 8064  3.18 0.98  0.75  2.5    3.25
+##    p75  p100     hist
+##   4     5.75 &lt;U+2581&gt;&lt;U+2582&gt;&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2582&gt;&lt;U+2581&gt;
+##   7.19 11.79 &lt;U+2586&gt;&lt;U+2585&gt;&lt;U+2587&gt;&lt;U+2585&gt;&lt;U+2583&gt;&lt;U+2582&gt;&lt;U+2581&gt;&lt;U+2581&gt;
+##   4.25  5.75 &lt;U+2581&gt;&lt;U+2581&gt;&lt;U+2586&gt;&lt;U+2586&gt;&lt;U+2586&gt;&lt;U+2587&gt;&lt;U+2582&gt;&lt;U+2581&gt;
+##   4     5.75 &lt;U+2581&gt;&lt;U+2582&gt;&lt;U+2586&gt;&lt;U+2586&gt;&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2582&gt;&lt;U+2581&gt;
+##   4.25  5.75 &lt;U+2581&gt;&lt;U+2581&gt;&lt;U+2585&gt;&lt;U+2586&gt;&lt;U+2586&gt;&lt;U+2587&gt;&lt;U+2583&gt;&lt;U+2581&gt;
+##   4.12  5.67 &lt;U+2581&gt;&lt;U+2582&gt;&lt;U+2585&gt;&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2586&gt;&lt;U+2583&gt;&lt;U+2581&gt;
+##   4     5.75 &lt;U+2581&gt;&lt;U+2582&gt;&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2582&gt;&lt;U+2581&gt;
+##   4     5.75 &lt;U+2581&gt;&lt;U+2582&gt;&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2582&gt;&lt;U+2581&gt;
+##   4     5.75 &lt;U+2581&gt;&lt;U+2582&gt;&lt;U+2585&gt;&lt;U+2587&gt;&lt;U+2586&gt;&lt;U+2586&gt;&lt;U+2582&gt;&lt;U+2581&gt;
+##   4.25  5.75 &lt;U+2581&gt;&lt;U+2582&gt;&lt;U+2587&gt;&lt;U+2586&gt;&lt;U+2586&gt;&lt;U+2587&gt;&lt;U+2583&gt;&lt;U+2581&gt;
+##   4     5.75 &lt;U+2581&gt;&lt;U+2583&gt;&lt;U+2585&gt;&lt;U+2587&gt;&lt;U+2585&gt;&lt;U+2586&gt;&lt;U+2582&gt;&lt;U+2581&gt;
+##   4.04  5.21 &lt;U+2581&gt;&lt;U+2585&gt;&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2586&gt;&lt;U+2582&gt;
+##   4     5.75 &lt;U+2581&gt;&lt;U+2583&gt;&lt;U+2587&gt;&lt;U+2586&gt;&lt;U+2586&gt;&lt;U+2587&gt;&lt;U+2582&gt;&lt;U+2581&gt;
+##  18.5  22.58 &lt;U+2581&gt;&lt;U+2581&gt;&lt;U+2583&gt;&lt;U+2586&gt;&lt;U+2587&gt;&lt;U+2586&gt;&lt;U+2583&gt;&lt;U+2581&gt;
+##   4     5.75 &lt;U+2581&gt;&lt;U+2582&gt;&lt;U+2583&gt;&lt;U+2587&gt;&lt;U+2586&gt;&lt;U+2586&gt;&lt;U+2581&gt;&lt;U+2581&gt;
+##   4     5.75 &lt;U+2581&gt;&lt;U+2583&gt;&lt;U+2585&gt;&lt;U+2587&gt;&lt;U+2585&gt;&lt;U+2586&gt;&lt;U+2582&gt;&lt;U+2581&gt;</code></pre>
+<pre class="r"><code>ggplot(data_combo, aes(total_perf, w_cat))+geom_density_ridges(aes(fill=w_cat),panel_scaling = F, alpha=0.8,rel_min_height = 0.000001)+scale_fill_brewer()</code></pre>
+<pre><code>## Picking joint bandwidth of 0.334</code></pre>
+<p><img src="/rmarkdown-libs/figure-html4/unnamed-chunk-13-1.png" width="672" /></p>
+<pre class="r"><code>ggplot(data_combo %&gt;% gather(key=stat, value=stat_v, c(Accel, Speed_mean, `M-turbo`,Traction, Handling_mean))) + geom_density_ridges2(aes(stat_v, w_cat, fill=w_cat), alpha=0.85)+facet_grid(stat~., switch = &quot;y&quot;)+scale_fill_brewer()+theme(axis.ticks.y = element_blank(), axis.text.y = element_blank())</code></pre>
+<pre><code>## Picking joint bandwidth of 0.112</code></pre>
+<pre><code>## Picking joint bandwidth of 0.0918</code></pre>
+<pre><code>## Picking joint bandwidth of 0.116</code></pre>
+<pre><code>## Picking joint bandwidth of 0.0859</code></pre>
+<pre><code>## Picking joint bandwidth of 0.178</code></pre>
+<p><img src="/rmarkdown-libs/figure-html4/unnamed-chunk-13-2.png" width="672" /></p>
+<pre class="r"><code>data_combo %&gt;% group_by(w_cat) %&gt;% select(-Char,-Glidder, -Kart, -Tire) %&gt;% select(Accel, Speed_mean, Handling_mean, `M-turbo`,Traction)%&gt;% skim_to_wide() %&gt;% arrange(variable)</code></pre>
+<pre><code>## Adding missing grouping variables: `w_cat`</code></pre>
+<pre><code>## # A tibble: 25 x 14
+##    type   w_cat   variable  missing complete n     mean  sd    p0    p25  
+##    &lt;chr&gt;  &lt;fct&gt;   &lt;chr&gt;     &lt;chr&gt;   &lt;chr&gt;    &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;
+##  1 numer~ Super ~ Accel     0       1223     1223  &quot;4.4~ 0.58  2.75  &quot;4  ~
+##  2 numer~ Light   Accel     0       2761     2761  3.73  0.55  &quot;2  ~ 3.25 
+##  3 numer~ Medium  Accel     0       2549     2549  3.14  0.53  1.75  2.75 
+##  4 numer~ Heavy   Accel     0       1381     1381  2.52  0.53  1.25  2.25 
+##  5 numer~ Super ~ Accel     0       150      150   1.84  0.41  &quot;1  ~ &quot;1.5~
+##  6 numer~ Super ~ Handling~ 0       1223     1223  4.63  0.36  3.58  4.38 
+##  7 numer~ Light   Handling~ 0       2761     2761  3.96  0.39  2.79  3.71 
+##  8 numer~ Medium  Handling~ 0       2549     2549  3.19  0.39  2.08  2.92 
+##  9 numer~ Heavy   Handling~ 0       1381     1381  2.53  0.42  1.38  2.21 
+## 10 numer~ Super ~ Handling~ 0       150      150   2.01  0.45  1.12  1.67 
+## # ... with 15 more rows, and 4 more variables: median &lt;chr&gt;, p75 &lt;chr&gt;,
+## #   p100 &lt;chr&gt;, hist &lt;chr&gt;</code></pre>
+<p>Lighest combo have higher totals once weight is put out of the balance.</p>
+<p>#Wich is the Most balanced Combo ?</p>
+<p>Is there any combination that results with all stats being above or equal to 3.5 ?</p>
+<pre class="r"><code>data_combo %&gt;%filter(Speed_Land&gt;=3.5 &amp; Accel &gt;= 3.5 &amp; Handling_Land &gt;=3.5 &amp; `M-turbo` &gt;=3.5 &amp; Traction &gt;=3.5) %&gt;% select(Char, Kart, Tire, Glidder,total_perf,Weight, Accel, Speed_mean,Speed_Land, Handling_mean, `M-turbo`,Traction, Handling_Land)</code></pre>
+<pre><code>## # A tibble: 48 x 13
+##    Char  Kart  Tire  Glidder total_perf Weight Accel Speed_mean Speed_Land
+##    &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;        &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;
+##  1 Luigi Mach~ Stan~ Cloud ~       18.1   3.50  3.50       3.96       3.50
+##  2 Luigi Stan~ Spon~ Super ~       17.6   3.25  3.50       3.58       3.50
+##  3 Luigi W 25~ Stan~ Super ~       18.6   3.25  3.75       3.75       3.50
+##  4 Luigi W 25~ Stan~ Wario ~       18.4   3.50  3.75       3.79       3.50
+##  5 Mario Cat ~ Stan~ Super ~       18.0   3.50  3.75       3.71       3.50
+##  6 Mario Stan~ Stan~ Cloud ~       18.0   3.25  3.75       3.75       3.50
+##  7 Mario W 25~ Stan~ Super ~       18.6   3.25  3.75       3.75       3.50
+##  8 Mario W 25~ Stan~ Wario ~       18.4   3.50  3.75       3.79       3.50
+##  9 Meta~ Bidd~ Stan~ Super ~       18.7   4.00  4.00       3.79       3.50
+## 10 Meta~ Land~ Butt~ Super ~       18.6   3.50  4.00       3.75       3.50
+## # ... with 38 more rows, and 4 more variables: Handling_mean &lt;dbl&gt;,
+## #   `M-turbo` &lt;dbl&gt;, Traction &lt;dbl&gt;, Handling_Land &lt;dbl&gt;</code></pre>
+<p>I want a Weight less than 3.5 and the best Accel I can get in this list.</p>
+<pre class="r"><code>data_combo %&gt;%filter(Speed_Land&gt;=3.5 &amp; Accel &gt;= 3.5 &amp; Handling_Land &gt;=3.5 &amp; `M-turbo` &gt;=3.5 &amp; Traction &gt;=3.5 &amp; Weight &lt;3.5)%&gt;% top_n(n=5, wt=Accel) %&gt;% select(Char, Kart, Tire, Glidder,total_perf,Weight, Accel, Speed_mean,Speed_Land, Handling_mean, `M-turbo`,Traction, Handling_Land) %&gt;% arrange(desc(total_perf))</code></pre>
+<pre><code>## # A tibble: 13 x 13
+##    Char  Kart  Tire  Glidder total_perf Weight Accel Speed_mean Speed_Land
+##    &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;        &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;
+##  1 Rosa~ W 25~ Stan~ Cloud ~       19.1   3.25  3.75       3.96       3.50
+##  2 Walu~ Land~ Roll~ Super ~       19.1   3.00  4.25       3.83       3.50
+##  3 Rosa~ Land~ Stan~ Super ~       19.0   3.25  3.75       3.67       3.50
+##  4 Rosa~ W 25~ Butt~ Super ~       18.8   3.00  3.75       3.83       3.50
+##  5 Luigi W 25~ Stan~ Super ~       18.6   3.25  3.75       3.75       3.50
+##  6 Mario W 25~ Stan~ Super ~       18.6   3.25  3.75       3.75       3.50
+##  7 Rosa~ W 25~ Butt~ Wario ~       18.5   3.25  3.75       3.88       3.50
+##  8 Peach Blue~ Stan~ Cloud ~       18.4   2.25  3.75       3.62       3.50
+##  9 Rosa~ Stan~ Roll~ Super ~       18.4   3.25  3.75       3.71       3.50
+## 10 Peach Stan~ Stan~ Super ~       18.2   3.00  3.75       3.54       3.50
+## 11 Peach Blue~ Stan~ Peach ~       18.0   2.50  3.75       3.58       3.50
+## 12 Mario Stan~ Stan~ Cloud ~       18.0   3.25  3.75       3.75       3.50
+## 13 Peach Stan~ Stan~ Wario ~       18.0   3.25  3.75       3.58       3.50
+## # ... with 4 more variables: Handling_mean &lt;dbl&gt;, `M-turbo` &lt;dbl&gt;,
+## #   Traction &lt;dbl&gt;, Handling_Land &lt;dbl&gt;</code></pre>
+<p>##Best overall combination ?</p>
+<pre class="r"><code>ggplot(data_combo, aes(Speed_mean, Accel))+
+  geom_point(pch=21, alpha=0.95, aes(fill=`M-turbo`, size=Handling_mean))+
+  viridis::scale_fill_viridis(direction=1)+
+  geom_abline(intercept=0, slope=1,size=1.5)+
+  geom_vline(xintercept=4)+
+  geom_hline(yintercept=4)+
+  ggrepel::geom_label_repel(data=(data_combo %&gt;% filter(Speed_mean &gt;= 4 &amp; Accel &gt;= 4)%&gt;% top_n(3,total_perf)), aes(x=Speed_mean, y=Accel,label=paste(round(total_perf,2),round(Speed_mean,2), round(Accel,2),&quot;\n&quot;,Char,&quot;+&quot;,Kart,&quot;+&quot;, Tire,&quot;+&quot;, Glidder)), size=2.6, segment.colour = &quot;black&quot;,force=9,point.padding = unit(0.5, &quot;lines&quot;), box.padding = 0, color=&quot;black&quot;, fill=&quot;white&quot;, alpha=0.85, segment.size = 1, nudge_y = 0.5)</code></pre>
+<p><img src="/rmarkdown-libs/figure-html4/unnamed-chunk-16-1.png" width="672" /></p>
+<p>#Comparative Chart of top_n</p>
+<pre class="r"><code>Best_Over_Combo &lt;-  data_combo %&gt;% filter(Speed_mean &gt;= 4 &amp; Accel &gt;= 4)%&gt;% top_n(5,total_perf) %&gt;% select(ID, Char, Kart, Tire, Glidder)
+
+ggplot(gather((data_combo %&gt;% filter(ID %in% Best_Over_Combo$ID)),key = Stat, value=Stat_v, c(Speed_mean,Speed_Land:Speed_Gliding)),aes(paste(Char, Kart,Tire,Glidder), Stat_v))+geom_col(aes(fill=paste(Char, Kart,Tire,Glidder)))+coord_flip()+facet_grid(Stat~., scales = &quot;free&quot;)+theme(axis.text.y = element_blank(), legend.position = &quot;bottom&quot;, legend.text = element_text(size=7), axis.ticks.y = element_blank(), legend.direction = &quot;vertical&quot;, legend.title.align = 0.5)+guides(fill=guide_legend(ncol=3))+labs(fill=&quot;Combo&quot;, x=&quot;&quot;, y=&quot;Scores&quot;)+scale_fill_brewer(type = &quot;qual&quot;)</code></pre>
+<p><img src="/rmarkdown-libs/figure-html4/unnamed-chunk-17-1.png" width="672" /></p>
+<p>problem here is that Speed_Land is low. Speen_mean was compensated by the High Speed_Water</p>
+<pre class="r"><code>ggplot(gather(data_combo %&gt;% filter(Accel&gt;=4 &amp; Speed_mean&gt;5&amp; Handling_mean&gt;4) %&gt;% top_n(1, total_perf),key = Stat, value=Stat_v, c(Speed_Land:Speed_Gliding,Accel, Weight, Handling_Land:Handling_Gliding, Traction, `M-turbo`)),aes(Stat, Stat_v))+geom_col()+coord_flip()</code></pre>
+<p><img src="/rmarkdown-libs/figure-html4/unnamed-chunk-18-1.png" width="672" /></p>
+<p>#Best combinations for Yoshi</p>
+<pre class="r"><code>data_combo %&gt;%filter(Char==&quot;Peach&quot;, Speed_Land &gt;3) %&gt;% select(Char, Kart, Tire, Glidder,total_perf,Weight, Accel, Speed_mean,Speed_Land, Handling_mean, `M-turbo`,Traction, Handling_Land) %&gt;% arrange(desc(total_perf)) %&gt;% top_n(10, Accel)</code></pre>
+<pre><code>## # A tibble: 20 x 13
+##    Char  Kart  Tire  Glidder total_perf Weight Accel Speed_mean Speed_Land
+##    &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;        &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;
+##  1 Peach W 25~ Stan~ Super ~       19.4   2.75  4.00       3.50       3.25
+##  2 Peach W 25~ Stan~ Wario ~       19.1   3.00  4.00       3.54       3.25
+##  3 Peach W 25~ Off-~ Cloud ~       19.0   2.75  4.00       3.50       3.25
+##  4 Peach Land~ Off-~ Super ~       18.8   2.75  4.00       3.21       3.25
+##  5 Peach Blue~ Roll~ Super ~       18.8   2.00  4.00       3.33       3.25
+##  6 Peach Cat ~ Stan~ Super ~       18.8   3.00  4.00       3.46       3.25
+##  7 Peach Stan~ Stan~ Cloud ~       18.7   2.75  4.00       3.50       3.25
+##  8 Peach W 25~ Off-~ Peach ~       18.7   3.00  4.00       3.46       3.25
+##  9 Peach Land~ Off-~ Wario ~       18.6   3.00  4.00       3.25       3.25
+## 10 Peach Blue~ Roll~ Wario ~       18.5   2.25  4.00       3.38       3.25
+## 11 Peach Blue~ Butt~ Cloud ~       18.5   1.75  4.00       3.46       3.25
+## 12 Peach Cat ~ Stan~ Wario ~       18.5   3.25  4.00       3.50       3.25
+## 13 Peach Pipe~ Off-~ Super ~       18.5   3.00  4.00       3.17       3.25
+## 14 Peach Cat ~ Off-~ Cloud ~       18.4   3.00  4.00       3.46       3.25
+## 15 Peach Stan~ Stan~ Peach ~       18.4   3.00  4.00       3.46       3.25
+## 16 Peach Stan~ Butt~ Super ~       18.3   2.50  4.00       3.38       3.25
+## 17 Peach Pipe~ Off-~ Wario ~       18.2   3.25  4.00       3.21       3.25
+## 18 Peach Blue~ Butt~ Peach ~       18.2   2.00  4.00       3.42       3.25
+## 19 Peach Stan~ Butt~ Wario ~       18.1   2.75  4.00       3.42       3.25
+## 20 Peach Cat ~ Off-~ Peach ~       18.0   3.25  4.00       3.42       3.25
+## # ... with 4 more variables: Handling_mean &lt;dbl&gt;, `M-turbo` &lt;dbl&gt;,
+## #   Traction &lt;dbl&gt;, Handling_Land &lt;dbl&gt;</code></pre>
+<pre class="r"><code>ggplot(data_combo %&gt;%filter(Char==&quot;Peach&quot;), aes(Speed_mean, Accel))+
+  geom_point(pch=21, alpha=0.85, aes(fill=`M-turbo`, size=Handling_mean))+
+  ggrepel::geom_label_repel(data=(data_combo %&gt;%filter(Char==&quot;Peach&quot;, Speed_mean &gt;= 3 &amp; Accel &gt;= 3) %&gt;% top_n(2, total_perf)), aes(x=Speed_mean, y=Accel,label=paste(total_perf,&quot;\n&quot;,Kart,&quot;+&quot;, Tire,&quot;+&quot;, Glidder,&quot;\n&quot;, w_cat)), size=2.6, segment.colour = &quot;black&quot;,force=5,point.padding = unit(0.5, &quot;lines&quot;), box.padding = 1.5, color=&quot;black&quot;, fill=&quot;white&quot;, alpha=0.87, direction = &quot;y&quot;)+
+  scale_fill_distiller(direction=1, palette=&quot;Greens&quot;)</code></pre>
+<p><img src="/rmarkdown-libs/figure-html4/unnamed-chunk-19-1.png" width="672" /></p>
+</div>
