@@ -61,9 +61,6 @@ Now, let's turn year variables as one with gather to anticipate plotting needs
 data <- raw_data %>% gather (key=year, value=`legal status`, c("1995":"2015"))
 data$year <-  as.numeric(data$year)
 str(data)
-
-widgetframe::frameWidget(datatable(data))
-
 ```
 
 
