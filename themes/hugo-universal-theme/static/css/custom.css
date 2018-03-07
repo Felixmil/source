@@ -1,5 +1,25 @@
 /* your styles go here */
 
+@import url('https://fonts.googleapis.com/css?family=Rasa:700');
+
+.heading h1, .heading h2{
+  font-family: "Helvetica Neue", serif;
+  font-style: italic;
+  letter-spacing: 0.01rem;
+  font-size:3.3rem;
+  border-bottom: double 4px #333333;
+  padding-bottom: 2px;
+}
+
+.col-md-12 .text-uppercase {
+    text-transform: uppercase;
+    letter-spacing: 0.01rem;
+    font-family: "Helvetica Neue";
+    font-weight: 900;
+    font-size: 3em;
+    font-style:italic;
+}
+
 .box-image-text .image {
   min-height: 200px;
   max-height: 200px;
@@ -33,7 +53,8 @@ bootstrap.css:1940
 }
 
 .col-md-9  {
-    font-size: 16px;
+    font-size: 19px;
+    color:#003333;
 }
 
 #top {

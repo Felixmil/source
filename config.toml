@@ -93,7 +93,7 @@ paginate = 10
     #Â Enable the contact form by entering your Formspree.io email
     email = ""  
 
-    about_us = "<a href=http://twitter.com/felix_mil_> ... </a>"
+    about_us = "<a href=http://twitter.com/felix_mil_> <i class='fa fa-2x fa-twitter'></i> </a><a href=https://linkedin.com/in/felix-mil/><i class='fa fa-2x fa-linkedin'></i></a><a href=https://github.com/felixmil><i class='fa fa-2x fa-github'></i></a>"
     copyright = "Copyright (c) 2018 - Now, Félix MIL; feel free to share cite source please."
 
     # Format dates with Go's time formatting
@@ -150,7 +150,7 @@ paginate = 10
     enable = true
     icon = "fa fa-book"
     title = "Welcome to my Lab Journal"
-    subtitle = "I'm Félix, Biotech engineer and datascientist padawan.  Data. R. Visualisation. Discoveries." 
+    subtitle = "~" 
     link_url = "#"
     link_text = "Journal Welcome Note (in progress)"
 
