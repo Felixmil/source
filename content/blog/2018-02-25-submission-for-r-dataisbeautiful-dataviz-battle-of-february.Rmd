@@ -102,7 +102,7 @@ The two previous plot are good to see global legal status evolution in the USA b
 A tile graph is an appropriate template to build this visualisation : squares delimits states and year as discrete scales. Indeed, data doesn't contain the precise date when legal status change, thus years can be considered on discrete scale.
 ```{r, fig.height=7}
 ggplot(data) + 
-  geom_tile(aes(fill=fct_relevel(`legal status`,"Constitutional Ban","Statutory Ban","No Law", "Legal"),x=year, y=State),color="white", size=0.8)+
+  geom_tile(aes(fill=fct_relevel(`legal status`,"Constitutional Ban","Statutory Ban","No Law", "Legal"),x=year, y=State),color="white", size=0.2)+
   scale_fill_manual(values = c("#e66101","#fdb863","grey","#5e3c99"))+
   coord_equal()+
   labs(fill="Legal Status :", title="Same Sex Marriage Legal Status Evolution in USA since 1995")+
@@ -110,7 +110,7 @@ ggplot(data) +
 ```
 Alphabetical order is practical to find a State one's want more details on, but it is also more difficult to contextualize the information as global trends tends to fade into categorical complexity (here, the 50 states). Also, it is impossible to recreate the shapes we can see in the count and proportional graphs since states are fixed on the y axis.
 
-## Final datavisulisation
+## Final data Viz
 ### Ordering States
 I decided to compromise by adding an ordering method based on legal status frequencies for each states.
 ```{r }
@@ -163,7 +163,7 @@ levels<- data_f %>%
 
 ```{r,fig.height=7}
 ggplot(data) + 
-  geom_tile(aes(fill=fct_relevel(`legal status`,"Constitutional Ban","Statutory Ban","No Law", "Legal"),x=year, y=State),color="white", size=0.8)+
+  geom_tile(aes(fill=fct_relevel(`legal status`,"Constitutional Ban","Statutory Ban","No Law", "Legal"),x=year, y=State),color="white", size=0.2)+
   scale_fill_manual(values = c("#e66101","#fdb863","grey","#5e3c99"))+
   coord_equal()+
   scale_y_discrete(name="",limits=(levels))+
