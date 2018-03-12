@@ -1,3 +1,3 @@
 +++
-Title = "Blog"
+Title = "Field Journal"
 +++

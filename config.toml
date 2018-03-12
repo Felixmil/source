@@ -29,7 +29,7 @@ paginate = 10
     weight = 1
 
 [[menu.main]]
-    name = "Blog"
+    name = "Journal"
     url  = "/blog/"
     weight = 2
 
@@ -90,11 +90,11 @@ paginate = 10
     # - click the confirm link in the email from www.formspree.io
     # - you're done. Happy mailing!
     #
-    #Â Enable the contact form by entering your Formspree.io email
+    #Enable the contact form by entering your Formspree.io email
     email = ""  
 
     about_us = "<a href=http://twitter.com/felix_mil_> <i class='fa fa-2x fa-twitter'></i> </a><a href=https://linkedin.com/in/felix-mil/><i class='fa fa-2x fa-linkedin'></i></a><a href=https://github.com/felixmil><i class='fa fa-2x fa-github'></i></a>"
-    copyright = "Copyright (c) 2018 - Now, Félix MIL; feel free to share cite source please."
+    copyright = "Copyright (c) 2018 - Now, Félix MIL | feel free to share but cite source please."
 
     # Format dates with Go's time formatting
     date_format = "January 2, 2006"
@@ -149,7 +149,7 @@ paginate = 10
 [params.see_more]
     enable = true
     icon = "fa fa-book"
-    title = "Welcome to my Lab Journal"
+    title = "Welcome to my R Field Journal"
     subtitle = "~" 
     link_url = "#"
     link_text = "Journal Welcome Note (in progress)"
@@ -165,4 +165,4 @@ paginate = 10
 [params.recent_posts]
     enable = true
     title = "Journal de Bord"
-    subtitle ="Articles are published as personal experience report, a sort of field log, or '*Journal de bord*' in French. They are meant to be notes for me, sources for other begineRs and knowledge for everyone."
+    subtitle ="Articles are published as personal experience reports, a sort of Field Journal, or '*Journal de bord*' in French. They are meant to be notes for me, sources for other R learners and maybe knowledge for everyone."
