@@ -149,8 +149,8 @@ paginate = 10
 [params.see_more]
     enable = true
     icon = "fa fa-book"
-    title = "Welcome to my R Field Journal"
-    subtitle = "~" 
+    title = "Welcome to my \n R Field Journal"
+    subtitle = "~"
     link_url = "#"
     link_text = "Journal Welcome Note (in progress)"
 
@@ -164,5 +164,5 @@ paginate = 10
 
 [params.recent_posts]
     enable = true
-    title = "Journal de Bord"
+    title = "Notes"
     subtitle ="Articles are published as personal experience reports, a sort of Field Journal, or '*Journal de bord*' in French. They are meant to be notes for me, sources for other R learners and maybe knowledge for everyone."
