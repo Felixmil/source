@@ -296,10 +296,38 @@ for (i in c((0:24),(0:24),(0:11))) {
   for(j in c(rep(752,24), rep(820,24), rep(882, 11))){
   frame <- paste("60x60+",i*65+2,"+",j, sep="")
   name <- paste("img",i,j,sep="_")
-  assign(x = name,value = image_crop(MarioK_img, frame)) %>% image_write(.,path = paste("img",i,j,".png", sep="_"), format="png")
-  name
+  assign(x = name,value = image_crop(MarioK_img, frame)) %>%image_write(.,path = paste("img",i,j,".png", sep="_"), format="png")
+  
+    m <- readPNG(paste("P:/R/Github/source/draft/img",i,j,".png",sep="_"), F)
+    w <- matrix(rgb(m[,,1],m[,,2],m[,,3],m[,,4] * 0.4), nrow=dim(m)[1]) # adjust alpha
+    
   }
 }
+
+```
+
+Plot with transparent image (limited loop)
+```{r}
+MarioK_img <- image_read("P:/R/Github/source/draft/Mario Kart.png")
+image_info(MarioK_img)
+
+for (i in c((0:24),(0:24),(0:11))) {
+  for(j in c(rep(752,24), rep(820,24), rep(882, 11))){
+  frame <- paste("60x60+",i*65+2,"+",j, sep="")
+  name <- paste("img",i,j,sep="_")
+  assign(x = name,value = image_crop(MarioK_img, frame)) %>%image_write(.,path = paste("img",i,j,".png", sep="_"), format="png")
+  
+    m <- readPNG(paste("P:/R/Github/source/draft/img",i,j,".png",sep="_"), F)
+    w <- m
+    w[,,4] <- m[,,4]*0.7 # adjust alpha
+    ggsave(writePNG(w, paste(paste("img",i,j,".png", sep="_"))), device = "png")
+  }
+}
+
+```
+
+```{r}
+
 
 ```
 
