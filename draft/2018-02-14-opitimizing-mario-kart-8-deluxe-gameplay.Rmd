@@ -7,6 +7,103 @@ categories:
 slug: opitimizing-mario-kart-8-deluxe-gameplay
 ---
 
+#Introduction
+
+Video games are about learning to make good decisions. I always ejoyed the liberty they offer through the choices available. And this is why I think Zelda : Breath Of the Wild definitly changed something in the open world circle of games. but that's not the subject today (probably another time though).
+
+Mario Kart was one of my first game I played as a kid. Then on SNES and now on Switch. Back then the was was simple between big and heavy donkey kong or the sneaky Toad, now we get to chose the character, the kart but also its tires and glider (yes, mario kart is also about glidding now).
+
+## Data : type
+
+Each character and item has its own stats that adds up on 5 jauges :
+
+* Speed
+* Acceleration
+* Weight
+* Handling
+* Traction
+
+IMAGE STAT
+
+## Data : dimension
+
+
+44 characters
+36 Karts
+21 Tires
+14 Gliders
+
+IMAGE mariokart builder
+
+## data : source
+
+A quick reddit query I found a dataset (https://docs.google.com/spreadsheets/d/1g7A-38tn9UAIbB2B3sZI-MpILsS3ZS870UTVMRRxh4Q/edit#gid=0) based on in-game experiments filled by Luigi_Fan2's (https://twitter.com/Luigi_Fan2).
+
+In its annotations, we can see that there are many redundancies in the karts and parts : 
+
+|----------------------------------------------------------------| 
+| Characters                                                     |
+|----------------------------------------------------------------| 
+| Baby Peach = Baby Daisy                                        | 
+| Baby Rosalina = Lemmy                                          | 
+| Baby Mario = Baby Luigi = Dry Bones = Light Mii                | 
+| Toadette = Wendy = Isabelle                                    | 
+| Koopa Troopa = Lakitu = Bowser Jr.                             | 
+| Toad = Shy Guy = Larry                                         | 
+| Cat Peach = Inkling Girl = Female Villager                     | 
+| Peach = Daisy = Yoshi                                          | 
+| Tanooki Mario = Inkling Boy = Male Villager                    | 
+| Mario = Ludwig = Medium Mii                                    | 
+| Luigi = Iggy                                                   | 
+| Rosalina = King Boo = Link                                     | 
+| Metal Mario = Gold Mario = Pink Gold Peach                     | 
+| Waluigi = Donkey Kong = Roy                                    | 
+| Wario = Dry Bowser                                             | 
+| Bowser = Morton = Heavy Mii                                    | 
+| Koopa Troopa = Lakitu = Bowser Jr.                             | 
+
+|----------------------------------------------------------------| 
+| Karts                                                          |
+|----------------------------------------------------------------| 
+| Standard Kart = 300 SL Roadster = The Duke                     | 
+| Pipe Frame = Varmint = City Tripper                            | 
+| Mach 8 = Sports Coupe = Inkstriker                             | 
+| Steel Driver = Tri-Speeder = Bone Rattler                      | 
+| Cat Cruiser = Comet = Yoshi Bike = Teddy Buggy                 | 
+| Circuit Special = B-Dasher = P-Wing                            | 
+| Badwagon = GLA = Standard ATV                                  | 
+| Prancer = Sport Bike = Jet Bike                                | 
+| Biddybuggy = Mr Scooty                                         | 
+| Landship = Streetle                                            | 
+| Sneeker = Gold Standard = Master Cycle                         | 
+| W 25 Silver Arrow = Standard Bike = Flame Rider = Wild Wiggler | 
+| Blue Falcon = Splat Buggy                                      | 
+| Tanooki Kart = Koopa Clown                                     | 
+
+|----------------------------------------------------------------| 
+| Tires                                                          |
+|----------------------------------------------------------------|                                          
+| Standard = Blue Standard = GLA Tires                           | 
+| Monster = Hot Monster                                          | 
+| Roller = Azure Roller                                          | 
+| Slim = Wood = Crimson Slim                                     | 
+| Slick = Cyber Slick                                            | 
+| Metal = Gold Tires                                             | 
+| Button = Leaf Tires                                            | 
+| Off-Road = Retro Off-Road = Triforce Tires                     | 
+| Sponge = Cushion                                               | 
+
+|----------------------------------------------------------------| 
+| Glidders                                                       |
+|----------------------------------------------------------------| 
+| Super Glider = Waddle Wing = Hylian Kite                       | 
+| Cloud Glider = Parachute = Flower Glider = Paper Glider        | 
+| Wario Wing = Plane Glider = Gold Glider                        | 
+| Peach Parasol = Parafoil = Bowser Kite = MKTV Parafoil         | 
+
+So refer to this table if you want equivalent stats but different skins.
+
+Instead of directly importing data from google drive, I built an excel file 
 
 #Import data
 ```{r message=FALSE, warning=FALSE}
@@ -199,8 +296,8 @@ data_combo %>%filter(Speed_Land>=3.5 & Accel >= 3.5 & Handling_Land >=3.5 & `M-t
 
 
 ##Best overall combination ?
-```{r}
-ggplot(data_combo, aes(Speed_mean, Accel))+
+```{r, fig.width=12, fig.asp=0.68}
+ggplot(data_combo, aes(Speed_mean, Accel, label=paste(round(total_perf,2),round(Speed_mean,2), round(Accel,2),"\n",Char,"+",Kart,"+", Tire,"+", Glidder)))+
   geom_point(pch=21, alpha=0.95, aes(fill=`M-turbo`, size=Handling_mean))+
   viridis::scale_fill_viridis(direction=1)+
   geom_abline(intercept=0, slope=1,size=1.5)+
@@ -211,10 +308,10 @@ ggplot(data_combo, aes(Speed_mean, Accel))+
 ```
 
 #Comparative Chart of top_n
-```{r fig.height=7, fig.asp=0.68}
+```{r fig.height=7, fig.asp=4}
 Best_Over_Combo <-  data_combo %>% filter(Speed_mean >= 4 & Accel >= 4)%>% top_n(5,total_perf) %>% select(ID, Char, Kart, Tire, Glidder)
 
-ggplot(gather((data_combo %>% filter(ID %in% Best_Over_Combo$ID)),key = Stat, value=Stat_v, c(Speed_mean,Speed_Land:Speed_Gliding)),aes(paste(Char, Kart,Tire,Glidder), Stat_v))+geom_col(aes(fill=paste(Char, Kart,Tire,Glidder)))+coord_flip()+facet_grid(Stat~., scales = "free")+theme(axis.text.y = element_blank(), legend.position = "bottom", legend.text = element_text(size=7), axis.ticks.y = element_blank(), legend.direction = "vertical", legend.title.align = 0.5)+guides(fill=guide_legend(ncol=3))+labs(fill="Combo", x="", y="Scores")+scale_fill_brewer(type = "qual")
+ggplot(gather((data_combo %>% filter(ID %in% Best_Over_Combo$ID)),key = Stat, value=Stat_v, c(Speed_mean,Speed_Land:Speed_Gliding)),aes(paste(Char, Kart,Tire,Glidder), Stat_v))+geom_col(aes(fill=paste(Char, Kart,Tire,Glidder)))+facet_grid(Stat~., scales = "free")+theme(axis.text.y = element_blank(), legend.position = "bottom", legend.text = element_text(size=7), axis.ticks.y = element_blank(), legend.direction = "vertical", legend.title.align = 0.5)+guides(fill=guide_legend(ncol=3))+labs(fill="Combo", x="", y="Scores")+scale_fill_brewer(type = "qual")
 ```
 
 
