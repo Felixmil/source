@@ -332,3 +332,99 @@ ggplot(data_combo %>%filter(Char=="Peach"), aes(Speed_mean, Accel))+
   ggrepel::geom_label_repel(data=(data_combo %>%filter(Char=="Peach", Speed_mean >= 3 & Accel >= 3) %>% top_n(2, total_perf)), aes(x=Speed_mean, y=Accel,label=paste(total_perf,"\n",Kart,"+", Tire,"+", Glidder,"\n", w_cat)), size=2.6, segment.colour = "black",force=5,point.padding = unit(0.5, "lines"), box.padding = 1.5, color="black", fill="white", alpha=0.87, direction = "y")+
   scale_fill_distiller(direction=1, palette="Greens")
 ```
+
+```{r fig.width=8, dpi=300}
+cols_fill <- c("Baby Mario" = "#F50000",
+               "Baby Peach" = "#F4B1D5",
+               "Baby Rosalina" = "#FFFF8E",
+               "Bowser" = "#F9B40E",
+               "Cat peach" = "#FCF7F6",
+               "Koopa Troopa" = "#E8B500",
+               "Luigi" = "#289913",
+               "Mario" = "#D30000",
+               "Metal Mario" = "#C5C5C5",
+               "Peach" = "#D39884",
+               "Rosalina" = "#FFFBDF",
+               "Tanooki Mario" = "#8A4300",
+               "Toad" = "#FDF4F3",
+               "Toadette" = "#F67CC2",
+               "Waluigi" = "#430C90",
+               "Wario" = "#FFF300"
+               )
+
+cols_col <- c("Baby Mario" = "#FFE4BF",
+               "Baby Peach" = "#FEF459",
+               "Baby Rosalina" = "#ECC69A",
+               "Bowser" = "#FE0A00",
+               "Cat peach" = "#FCF7F6",
+               "Koopa Troopa" = "#E8B500",
+               "Luigi" = "#289913",
+               "Mario" = "#D30000",
+               "Metal Mario" = "#C5C5C5",
+               "Peach" = "#D39884",
+               "Rosalina" = "#FFFBDF",
+               "Tanooki Mario" = "#8A4300",
+               "Toad" = "#FE0A00",
+               "Toadette" = "#F67CC2",
+               "Waluigi" = "#430C90",
+               "Wario" = "#FFF300"
+               )
+
+
+ggplot(data_combo %>% filter(Char=="Toad"), aes(Speed_mean, Accel))+
+  geom_point(pch=21, size=2, aes(alpha=`M-turbo`, size=Handling_mean, fill=Char))+
+  geom_abline(slope=1)
+
+
+ggplot(data_combo %>% mutate(image=case_when(Char=="Mario" ~ "P:/R/Github/source/draft/img_16_752_.png")), aes(Speed_mean, Accel,alpha=`M-turbo`))+
+  geom_image(aes(image=image), size=0.05)+
+  geom_abline(slope=1)
+```
+
+
+
+Plot with images
+```{r}
+MarioK_img <- image_read("P:/R/Github/source/draft/Mario Kart.png")
+print(MarioK_img)
+image_info(MarioK_img)
+
+for (i in c((0:24),(0:24),(0:11))) {
+  for(j in c(rep(752,24), rep(820,24), rep(882, 11))){
+  frame <- paste("60x60+",i*65+2,"+",j, sep="")
+  name <- paste("img",i,j,sep="_")
+  assign(x = name,value = image_crop(MarioK_img, frame)) %>%image_write(.,path = paste("img",i,j,".png", sep="_"), format="png")
+  
+    m <- readPNG(paste("P:/R/Github/source/draft/img",i,j,".png",sep="_"), F)
+    w <- matrix(rgb(m[,,1],m[,,2],m[,,3],m[,,4] * 0.4), nrow=dim(m)[1]) # adjust alpha
+    
+  }
+}
+
+```
+
+Plot with transparent image (limited loop)
+```{r}
+MarioK_img <- image_read("P:/R/Github/source/draft/Mario Kart.png")
+image_info(MarioK_img)
+
+for (i in c((0:24),(0:24),(0:11))) {
+  for(j in c(rep(752,24), rep(820,24), rep(882, 11))){
+  frame <- paste("60x60+",i*65+2,"+",j, sep="")
+  name <- paste("img",i,j,sep="_")
+  assign(x = name,value = image_crop(MarioK_img, frame)) %>%image_write(.,path = paste("img",i,j,".png", sep="_"), format="png")
+  
+    m <- readPNG(paste("P:/R/Github/source/draft/img",i,j,".png",sep="_"), F)
+    w <- m
+    w[,,4] <- m[,,4]*0.7 # adjust alpha
+    ggsave(writePNG(w, paste(paste("img",i,j,".png", sep="_"))), device = "png")
+  }
+}
+
+```
+
+```{r}
+
+
+```
+
