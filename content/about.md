@@ -7,7 +7,7 @@ date="2018-01-31"
 @import url('https://fonts.googleapis.com/css?family=Lora|Playfair+Display|Roboto');
 .col-md-12 .about {
     font-style: italic;
-    font-size: 13rem;
+    font-size: 600%;
     text-align: center;
     font-family: Playfair Display, serif;
     color: black;
@@ -31,7 +31,7 @@ date="2018-01-31"
 </style>
 
 
-<div class = "about-img"><center><img src= "https://media.licdn.com/dms/image/C4D03AQE4RBAIzvb8PA/profile-displayphoto-shrink_200_200/0?e=1526076000&v=alpha&t=3YEbgeBm_Tf4KdTw9ML79qx66osXhtQVveUS-kmjB48" style="border-radius: 50%;width:300px; margin-left:auto;margin-right:auto;"></img></center>
+<div class = "about-img"><center><img src= "https://trello-attachments.s3.amazonaws.com/5a40e1ff1f593f7702819485/5b092a3b44abc304f0b2f386/2df47e05cab97ecab7b4450ba4d60e97/IMG_20171102_122531_Bokeh~3.jpg" style="border-radius: 50%;width:250px; margin-left:auto;margin-right:auto;"></img></center>
 </div>
 
 <div class = "about">
@@ -41,15 +41,33 @@ date="2018-01-31"
 
 <div class = "about-title">
 
-WHO AM I ?
+Biotechnologist
 
 </div>
 
-<div class = "about-txt">
+I graduated in 2016 in Biotech engeenering with specialisation for biomedical industry and in vitro diagnostics (IVD).
+Since then, I work as a project manager and data analyst at Diagnostica Stago, a leading company in the haemostasis field developing and selling IVD products.
 
-Please, come back later for more details...
+My work is mostly designing experiments and develop innovative methods and products and assess their performances and potential before pushing them into the development process.
 
-or Follow me !
+
+<div class = "about-title">
+
+Self-made Datascientist
+
+</div>
+
+My everyday work is mostly managing and analysing clinical studies data using R and Tableau Software.
+For analyzing experiments results, Excel was good enough. But, facing larger amount of data, reproducibility issues and needing to adopt another approach : exploratory data analysis, excel was just a nightmare to deal with. I decided to learn a programming language.
+
+I started with R for data Science and FactoMiner MOOC...
+
+[to be continued]
+
+
+<div class = "about-title">
+
+Nature Lover
 
 </div>
 </html>

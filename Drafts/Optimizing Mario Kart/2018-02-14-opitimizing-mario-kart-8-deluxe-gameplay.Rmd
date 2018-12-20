@@ -14,7 +14,7 @@ output :
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, message=F, warning = F, fig.align = "center", out.width = "85%", cache.lazy = F)
+knitr::opts_chunk$set(echo = TRUE, message=F, warning = F, fig.align = "center", out.width = "85%", cache.lazy = T)
 ```
 
 ## Introduction
@@ -161,50 +161,10 @@ data %>%
   theme(panel.grid.minor.y = element_blank(), panel.grid.major.x=element_line(color="grey60", linetype = 3),axis.ticks = element_blank(), panel.background = element_blank(), axis.text.x = element_text(angle=15), axis.title = element_blank()) + scale_x_discrete(position="top") + labs(y="Value")
 ```
 
-### Game Design analysis
-
-As longtime Nintendo fan, I know that the company puts effort into creating immersive experiences and comprehensive environment. Well, ok it's always somehow weird and cartoony... but my point is that there's always something players can rely on and feel as "normal" first (physics, storyline, characters feelings ...) before acceptiong all the crazy things that are happening around him.
-
-That door into reality for Mario Kart is characters weights and physics : the player expects Bowser to weight more than Toad and thus be less agile while the latter have less inertia (thus lower maximum speed). 
-The maths behind Mario Kart's game design can be summed with the following chart :
-
-```{r}
-plot_ly(data = (data %>% filter(Type=="Char")), x=~Speed_mean,y=~Accel, label=~ID, color=~`M-turbo`,size=~Weight,title="test",  text=~paste("Char :",ID, "<br> Weight :", Weight,"<br> M-Turbo :",`M-turbo`)) %>% hide_colorbar() %>% layout(title="Characters distribution between Acceleration, Mean Speed, Turbo and Weight", subtitle="Light characters have higher Acceleration, Turbo (+ Handling & Traction since positively correlated) and \nlower Mean Speed while heavy characters behave in an opposite way")
-```
-
-  
-It is also true with Kart parts (Here : Tires)
-```{r}
-ggplot(data %>% filter(Type=="Tire"),
-  aes(x=Speed_mean,y=Accel))+
-  geom_point(aes(size=Weight, fill=`M-turbo`), 
-             pch=21)+
-  ggrepel::geom_text_repel(aes(label=ID),
-                           min.segment.length = 0.1,
-                           point.padding = unit(1.2, 'lines'),
-                           box.padding = unit(0.6, 'lines'),
-                           force=2)+
-  viridis::scale_fill_viridis()+
-  geom_rect(aes(ymin=-Inf, ymax=0, xmin=-Inf, xmax=0),
-            alpha=0.01,
-            fill="red")+
-  geom_rect(aes(ymin=0, ymax=Inf, xmin=0, xmax=Inf),
-            alpha=0.01,
-            fill="green")+
-  labs(
-    title="Tires distribution between Acceleration, Mean Speed, Turbo and Weight",
-    subtitle="Ligher Tires grant higher Acceleration, Turbo (+ Handling & Traction since positively correlated) bonus and \n Mean Speed malus while heavy characters behave in an opposite way",
-    caption= "Some kart parts grants malus only, none grants bonus only")
-```
-
-Weight can be consideredas a player preference depending on the kind of gameplay (or character) they like :
-
-* High wheight have generaly the best speed. Fits players that can dodge obstacle, don't want to be pushed and knows the tracks perfectly.
-* Low wheight have best acceleration. Fits players that want return to max speed faster and wants to trigger turbo more ofter/powerfully
-
-
 ## Questions and Hypothesis
-*Is there any best combination for characters and kart parts ?*
+*Above gameplay preferences (light or heavy characters), is there any best combination ?*
+
+Best combination is considered as effective in any situation, thus, speed and acceleration should be balanced.
 
 The parameters that need to be optimized (i.e. higher values are the best) are :
 
@@ -218,8 +178,8 @@ Weight is put aside because as we seen, it is not considered as a performance bu
 
 My first hypothesis was that the best combination would come from :
 
-* A heavy character, balanced by light items
-* A light character, balanced by heavy items
+* A heavy character, balanced by light kart parts
+* A light character, balanced by heavy kart parts
 
 
 ## Analysis
@@ -269,10 +229,13 @@ data_combo  <- data_combo  %>%mutate(Speed_mean=rowMeans(data_combo [grepl("Spee
 
 ### More variables !
 
-At this point, I decided to add few variables that made sense :
+I decided to add few helpfull variables:
 
 * Weighted Speed and Handling that gives more importance (twice) to Land and Anti-G (These kind of tracks seems to be the more frequent. I could not find any actual data on that but a 2 factor seems appropriate)
 * As weight is not a performance, weights are transformed in categories
+* A Total performance indicator is computed by summing :
+    + Mean Speed
+    + Acceleration
 
 ```{r}
 #Land Speed and Handling are weighted (twice more important) for mean calculation since most part of the races happens on regular soil.
@@ -283,20 +246,16 @@ data_combo  <- data_combo %>%
   mutate(Handling_mean=weighted.mean(x=c(Handling_Land,`Handling_Anti-G`, Handling_Water, Handling_Gliding), w=c(2,2,1,1)))
 
 
-data_combo <- data_combo %>% mutate(total_perf=as.numeric(Accel+Speed_mean+Handling_mean+Traction+`M-turbo`)) 
-
 #Weight categories
 data_combo <- data_combo %>% mutate(w_cat = cut(Weight,breaks = c(0,2,3,4,5,6),labels = c("Super Light","Light","Medium","Heavy", "Super Heavy")))#Create Weigh categories
 
-
-#A Accelration/Speed Ratio is computed
-data_combo <- data_combo %>% mutate(A_SRatio= `Accel`/Speed_mean)
-
+#Total_perf computing
+data_combo <- data_combo %>% mutate(total_perf=as.numeric(Accel+Speed_mean)) 
 ```
 
 ### Combinations summary
+
 ```{r}
-library(skimr)
 data_combo %>% ungroup() %>% 
   select(-ID) %>% 
   select_if(is.numeric) %>% 
@@ -304,6 +263,15 @@ data_combo %>% ungroup() %>%
   kable("html") %>% 
   kable_styling()
 ```
+
+This table tells us that the maximum (p100) total performance we can get is around 8.42. What are these combinations ?
+
+```{r}
+data_combo %>% ungroup()%>% top_n(3,wt = total_perf) %>% arrange(desc(total_perf)) %>% kable("html") %>% kable_styling()
+```
+
+According to our definition of best combination,
+
 
 
 ##Best overall combination ?
@@ -313,12 +281,10 @@ ggplot(data_combo, aes(Speed_mean, Accel, label=paste(round(total_perf,2),round(
   viridis::scale_fill_viridis(direction=1)+
   geom_abline(intercept=0, slope=1,size=1.5)+
   geom_vline(xintercept=4)+
-  geom_hline(yintercept=4)
-
-```
-
+  geom_hline(yintercept=4)+
 ggrepel::geom_label_repel(data=(data_combo %>% filter(Speed_mean >= 4 & Accel >= 4)%>% top_n(3,total_perf)), aes(x=Speed_mean, y=Accel,label=paste(round(total_perf,2),round(Speed_mean,2), round(Accel,2),"\n",Char,"+",Kart,"+", Tire,"+", Glidder)), size=2.6, segment.colour = "black",force=9,point.padding = unit(0.5, "lines"), box.padding = 0, color="black", fill="white", alpha=0.85, segment.size = 1, nudge_y = 0.5)+
   facet_wrap(~w_cat)
+```
   
 #Comparative Chart of top_n
 ```{r eval=FALSE, fig.asp=4, fig.height=7, include=FALSE}
@@ -330,58 +296,7 @@ ggplot(gather((data_combo %>% filter(ID %in% Best_Over_Combo$ID)),key = Stat, va
 
 Problem here is that Speed_Land is low. Speen_mean was compensated by the High Speed_Water
 
-```{r eval=FALSE, include=FALSE}
-ggplot(gather(data_combo %>% filter(Accel>=4 & Speed_mean>5& Handling_mean>4) %>% top_n(1, total_perf),key = Stat, value=Stat_v, c(Speed_Land:Speed_Gliding,Accel, Weight, Handling_Land:Handling_Gliding, Traction, `M-turbo`)),aes(Stat, Stat_v))+geom_col()+coord_flip()
 
-```
-
-
-#Best combinations for Yoshi
-```{r}
-data_combo %>%filter(Char=="Peach", Speed_Land >3) %>% select(Char, Kart, Tire, Glidder,total_perf,Weight, Accel, Speed_mean,Speed_Land, Handling_mean, `M-turbo`,Traction, Handling_Land) %>% arrange(desc(total_perf)) %>% top_n(10, Accel)
-
-ggplot(data_combo %>%filter(Char=="Peach"), aes(Speed_mean, Accel))+
-  geom_point(pch=21, alpha=0.85, aes(fill=`M-turbo`, size=Handling_mean))+
-  ggrepel::geom_label_repel(data=(data_combo %>%filter(Char=="Peach", Speed_mean >= 3 & Accel >= 3) %>% top_n(2, total_perf)), aes(x=Speed_mean, y=Accel,label=paste(total_perf,"\n",Kart,"+", Tire,"+", Glidder,"\n", w_cat)), size=2.6, segment.colour = "black",force=5,point.padding = unit(0.5, "lines"), box.padding = 1.5, color="black", fill="white", alpha=0.87, direction = "y")+
-  scale_fill_distiller(direction=1, palette="Greens")
-```
-
-
-```{r}
-data_combo %>%filter(Char=="Metal Mario", Speed_Land >3) %>% select(Char, Kart, Tire, Glidder,total_perf,Weight, Accel, Speed_mean,Speed_Land, Handling_mean, `M-turbo`,Traction, Handling_Land) %>% arrange(desc(total_perf)) %>% top_n(10, Accel)
-
-ggplot(data_combo %>%filter(Char=="Metal Mario"), aes(Speed_mean, Accel))+
-  geom_point(pch=21, alpha=0.85, aes(fill=`M-turbo`, size=Handling_mean))+
-  ggrepel::geom_label_repel(data=(data_combo %>%filter(Char=="Peach", Speed_mean >= 3 & Accel >= 3) %>% top_n(2, total_perf)), aes(x=Speed_mean, y=Accel,label=paste(total_perf,"\n",Kart,"+", Tire,"+", Glidder,"\n", w_cat)), size=2.6, segment.colour = "black",force=5,point.padding = unit(0.5, "lines"), box.padding = 1.5, color="black", fill="white", alpha=0.87, direction = "y")+
-  scale_fill_distiller(direction=1, palette="Greens")
-
-ggplotly(ggplot(data_combo %>%filter(Char=="Metal Mario"), aes(Speed_mean, Accel))+
-  geom_point(pch=21, alpha=0.85, aes(fill=`M-turbo`, size=Handling_mean,label=Kart, label2=Tire, Label3=Glidder), fill="grey80")+
-  ggrepel::geom_label_repel(data=(data_combo %>%filter(Char=="Peach", Speed_mean >= 3 & Accel >= 3) %>% top_n(2, total_perf)), aes(x=Speed_mean, y=Accel,label=paste(total_perf,"\n",Kart,"+", Tire,"+", Glidder,"\n", w_cat)), size=2.6, segment.colour = "black",force=5,point.padding = unit(0.5, "lines"), box.padding = 1.5, color="black", fill="white", alpha=0.87, direction = "y")+
-    geom_abline()+
-    geom_hline(yintercept = 4)+
-    geom_vline(xintercept = 4))
-
-
-#Tanooki Mario
-ggplotly(ggplot(data_combo %>%filter(Char=="Tanooki Mario"), aes(Speed_mean, Accel))+
-  geom_point(pch=21, alpha=0.85, aes(fill=`M-turbo`, size=Handling_mean,label=Kart, label2=Tire, Label3=Glidder), fill="grey80")+
-  ggrepel::geom_label_repel(data=(data_combo %>%filter(Char=="Peach", Speed_mean >= 3 & Accel >= 3) %>% top_n(2, total_perf)), aes(x=Speed_mean, y=Accel,label=paste(total_perf,"\n",Kart,"+", Tire,"+", Glidder,"\n", w_cat)), size=2.6, segment.colour = "black",force=5,point.padding = unit(0.5, "lines"), box.padding = 1.5, color="black", fill="white", alpha=0.87, direction = "y")+
-    geom_abline()+
-    geom_hline(yintercept = 4)+
-    geom_vline(xintercept = 4))
-
-
-ggplotly(ggplot(data_combo %>%filter(Char=="Koopa Troopa"), aes(Speed_mean, Accel))+
-  geom_point(pch=21, alpha=0.85, aes(fill=`M-turbo`, size=Handling_mean,label=Kart, label2=Tire, Label3=Glidder), fill="grey80")+
-    geom_abline()+
-    geom_hline(yintercept = 4)+
-    geom_vline(xintercept = 4))
-library(plotly)
-```
-
-
-Plot with images
 
 Plot with transparent image (limited loop)
 ```{r,error=T}
@@ -436,7 +351,46 @@ data_combo <- data_combo %>% ungroup() %>%mutate(img=sprintf("icons/%s.png",data
 ```
 
 
-```{r}
-ggplot(data_combo %>% group_by(Char) %>% sample_frac(0.15), aes(Speed_mean, Accel))+geom_image(aes(image=img), size=0.04) + coord_equal() + scale_x_continuous(limits = c(1,5.8)) + scale_y_continuous(limits = c(1,5.8))+theme_classic()
+```{r, fig.asp=1}
+ggplot(data_combo %>% group_by(Char) %>% sample_frac(1), aes(Speed_mean, Accel))+
+  geom_image(aes(image=img), size=0.04) + coord_equal() + scale_x_continuous(limits = c(1,5.8))+
+  scale_y_continuous(limits = c(1,5.8))+
+  ggrepel::geom_label_repel(data=(data_combo %>% top_n(3,total_perf)), aes(x=Speed_mean, y=Accel,group=ID,label=paste("Total:",round(total_perf,2),"\n","Speed:",round(Speed_mean,2),"Accel:", round(Accel,2),"\n",Char,"+",Kart,"+", Tire,"+", Glidder)), size=1, segment.colour = "black",point.padding = unit(0.1, "lines"), color="black", fill="white", alpha=0.85, segment.size = 0.2, min.segment.length = 0, direction = "y", nudge_x = 2, force=4,label.padding = 0.1)+
+  theme_classic()+
+  facet_wrap(~w_cat,ncol=1)+
+  geom_abline(alpha=0.2)
 ```
 
+
+#Best combinations for Specifics characters
+
+```{r}
+
+#Yoshi
+ggplot(data_combo %>%filter(Char=="Peach"), aes(Speed_mean, Accel))+
+  geom_point(pch=21, alpha=0.85, aes(fill=`M-turbo`, size=Handling_mean))+
+  ggrepel::geom_label_repel(data=(data_combo %>%filter(Char=="Peach", Speed_mean >= 3 & Accel >= 3) %>% top_n(2, total_perf)), aes(x=Speed_mean, y=Accel,label=paste(total_perf,"\n",Kart,"+", Tire,"+", Glidder,"\n", w_cat)), size=2.6, segment.colour = "black",force=5,point.padding = unit(0.5, "lines"), box.padding = 1.5, color="black", fill="white", alpha=0.87, direction = "y")+
+  scale_fill_distiller(direction=1, palette="Greens")
+
+#Metal Mario
+ggplot(data_combo %>%filter(Char=="Metal Mario"), aes(Speed_mean, Accel))+
+  geom_point(pch=21, alpha=0.85, aes(fill=`M-turbo`, size=Handling_mean))+
+  ggrepel::geom_label_repel(data=(data_combo %>%filter(Char=="Peach", Speed_mean >= 3 & Accel >= 3) %>% top_n(2, total_perf)), aes(x=Speed_mean, y=Accel,label=paste(total_perf,"\n",Kart,"+", Tire,"+", Glidder,"\n", w_cat)), size=2.6, segment.colour = "black",force=5,point.padding = unit(0.5, "lines"), box.padding = 1.5, color="black", fill="white", alpha=0.87, direction = "y")+
+  scale_fill_distiller(direction=1, palette="Greens")
+
+#Tanooki Mario
+ggplotly(ggplot(data_combo %>%filter(Char=="Tanooki Mario"), aes(Speed_mean, Accel))+
+  geom_point(pch=21, alpha=0.85, aes(fill=`M-turbo`, size=Handling_mean,label=Kart, label2=Tire, Label3=Glidder), fill="grey80")+
+  ggrepel::geom_label_repel(data=(data_combo %>%filter(Char=="Peach", Speed_mean >= 3 & Accel >= 3) %>% top_n(2, total_perf)), aes(x=Speed_mean, y=Accel,label=paste(total_perf,"\n",Kart,"+", Tire,"+", Glidder,"\n", w_cat)), size=2.6, segment.colour = "black",force=5,point.padding = unit(0.5, "lines"), box.padding = 1.5, color="black", fill="white", alpha=0.87, direction = "y")+
+    geom_abline()+
+    geom_hline(yintercept = 4)+
+    geom_vline(xintercept = 4))
+
+#Koopa Troopa
+ggplotly(ggplot(data_combo %>%filter(Char=="Koopa Troopa"), aes(Speed_mean, Accel))+
+  geom_point(pch=21, alpha=0.85, aes(fill=`M-turbo`, size=Handling_mean,label=Kart, label2=Tire, Label3=Glidder), fill="grey80")+
+    geom_abline()+
+    geom_hline(yintercept = 4)+
+    geom_vline(xintercept = 4))
+library(plotly)
+```

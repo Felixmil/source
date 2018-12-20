@@ -120,8 +120,7 @@ str(data)</code></pre>
 <pre class="r"><code>ggplot(data, aes(x=year, y=State, group=`legal status`)) + 
   geom_area(aes(fill=`legal status`), size=1)+
   scale_fill_brewer(type=&quot;div&quot;, palette=&quot;PuOr&quot;)</code></pre>
-<p><img src="/blog/2018-02-25-submission-for-r-dataisbeautiful-dataviz-battle-of-february_files/figure-html/unnamed-chunk-5-1.png" width="90%" style="display: block; margin: auto;" />
-That’s an odd interesting chart !!</p>
+<p><img src="/blog/2018-02-25-submission-for-r-dataisbeautiful-dataviz-battle-of-february_files/figure-html/unnamed-chunk-5-1.png" width="90%" style="display: block; margin: auto;" /> That’s an odd interesting chart !!</p>
 <p>Let’s try again</p>
 <pre class="r"><code>ggplot(data, aes(x=year, group=fct_infreq(`legal status`),fill=fct_relevel(`legal status`,&quot;Constitutional Ban&quot;,&quot;Statutory Ban&quot;,&quot;No Law&quot;, &quot;Legal&quot;))) + 
   geom_area(stat=&quot;count&quot;, position=&quot;fill&quot;)+
@@ -140,8 +139,7 @@ That’s an odd interesting chart !!</p>
   coord_equal()+
   labs(fill=&quot;Legal Status :&quot;, title=&quot;Same Sex Marriage Legal Status Evolution in USA since 1995&quot;)+
   theme(legend.position = &quot;bottom&quot;, plot.title = element_text(hjust=0.5),panel.background = element_blank())</code></pre>
-<p><img src="/blog/2018-02-25-submission-for-r-dataisbeautiful-dataviz-battle-of-february_files/figure-html/unnamed-chunk-7-1.png" width="90%" style="display: block; margin: auto;" />
-Alphabetical order is practical to find a State one’s want more details on, but it is also more difficult to contextualize the information as global trends tends to fade into categorical complexity (here, the 50 states). Also, it is impossible to recreate the shapes we can see in the count and proportional graphs since states are fixed on the y axis.</p>
+<p><img src="/blog/2018-02-25-submission-for-r-dataisbeautiful-dataviz-battle-of-february_files/figure-html/unnamed-chunk-7-1.png" width="90%" style="display: block; margin: auto;" /> Alphabetical order is practical to find a State one’s want more details on, but it is also more difficult to contextualize the information as global trends tends to fade into categorical complexity (here, the 50 states). Also, it is impossible to recreate the shapes we can see in the count and proportional graphs since states are fixed on the y axis.</p>
 </div>
 <div id="final-data-viz" class="section level2">
 <h2>Final data Viz</h2>

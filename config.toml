@@ -1,5 +1,5 @@
 #on maestro computer
-publishDir ="D:/Documents/#02 PROJECTS/MINING/GitHub/felixmil.github.io"
+publishDir ="/Users/felix/Documents/R/Blog/felixmil.github.io"
 
 # at work :
 #publishDir = "P:/R/Github/felixmil.github.io"
@@ -59,12 +59,6 @@ paginate = 10
     name = "My GitHub repositeries"
     url = "https://github.com/felixmil"
     pre = "<i class='fa fa-2x fa-github'></i>"
-
-[[menu.topbar]]
-    weight = 3
-    name = "Blog management Trello"
-    url = "trello.com/b/wl3Vk33A/blog"
-    pre = "<i class='fa fa-2x fa-trello'></i>"
 
 [params]
     viewMorePostLink = "/blog/"

@@ -28,9 +28,7 @@ banner: "img/Articles/blog.jpg"
 <div id="how-to" class="section level1">
 <h1>How to</h1>
 <ol style="list-style-type: decimal">
-<li>create 2 repo
-<em>username/source
-</em>username/username.github.io</li>
+<li>create 2 repo <em>username/source </em>username/username.github.io</li>
 <li>clone repo on computer and remove readme files</li>
 <li>start new R project</li>
 <li>project option -&gt; website, select source as base directory</li>
@@ -73,14 +71,17 @@ git push origin master</code></pre>
 </div>
 <div id="update" class="section level1">
 <h1>Update</h1>
-<p>###Serving site</p>
+<div id="serving-site" class="section level3">
+<h3>Serving site</h3>
 <p>there is a bug when serving site, to solve it, I use the following code</p>
 <pre class="r"><code>install.packages(c(&quot;processx&quot;, &quot;later&quot;))
 options(blogdown.generator.server = TRUE)</code></pre>
-<p>###Summary is way to long !</p>
+</div>
+<div id="summary-is-way-to-long" class="section level3">
+<h3>Summary is way to long !</h3>
 <p>update layout/Summary.html to optimize Summary readability:</p>
-<p>since <code>&lt;!--more--&gt;</code> does not work with Rmarkdown + Blogdown + Hugo, I modified the theme file.
-{{.Summary}} became</p>
+<p>since <code>&lt;!--more--&gt;</code> does not work with Rmarkdown + Blogdown + Hugo, I modified the theme file. {{.Summary}} became</p>
 <pre class="r"><code>{{ if gt (len .Summary) 200 }}{{slicestr .Summary 0 200}} {{else}} {{.Summary}} {{end}} &lt;a href=&quot;{{ .Permalink }}&quot; class=&quot;postShorten-excerpt_link link&quot;&gt;[...] continue reading &lt;/a&gt;</code></pre>
 <p>source : <a href="https://discourse.gohugo.io/t/limit-the-summary/4103/8" class="uri">https://discourse.gohugo.io/t/limit-the-summary/4103/8</a></p>
+</div>
 </div>
