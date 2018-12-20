@@ -26,13 +26,10 @@ Material
 =======
 Used :
 
-*https://tclavelle.github.io/blog/blogdown_github/
-
-*https://bookdown.org/yihui/blogdown/github-pages.html
-
-*https://talesofr.wordpress.com/2017/08/18/starting-a-rmarkdown-blog-with-bookdown-hugo-github/
-
-*https://yihui.name/en/2017/08/hugo-post-summary/#fnref:I-broke-the-4th 
+- https://tclavelle.github.io/blog/blogdown_github/
+- https://bookdown.org/yihui/blogdown/github-pages.html
+- https://talesofr.wordpress.com/2017/08/18/starting-a-rmarkdown-blog-with-bookdown-hugo-github/
+- https://yihui.name/en/2017/08/hugo-post-summary/#fnref:I-broke-the-4th 
 
 
 
@@ -91,7 +88,7 @@ git push origin master
 
 Update
 =======
-###Serving site
+### Serving site
 
 there is a bug when serving site, to solve it, I use the following code
 ```{r, eval=F, eval=F}
@@ -99,7 +96,7 @@ install.packages(c("processx", "later"))
 options(blogdown.generator.server = TRUE)
 ```
 
-###Summary is way to long !
+### Summary is way to long !
 
 
 update layout/Summary.html to optimize Summary readability:
